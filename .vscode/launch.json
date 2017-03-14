@@ -8,6 +8,7 @@
             "request": "launch",
             "name": "Launch Program",
             "program": "${workspaceRoot}\\server.js",
+            "envFile": "${workspaceRoot}/.env",
             "outFiles": []
         },
         {
