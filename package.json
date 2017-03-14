@@ -1,0 +1,24 @@
+{
+  "name": "jarvis",
+  "version": "0.0.1",
+  "description": "Helper bot for White Fox Developers",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "White Fox",
+  "license": "MIT",
+  "engines": {
+    "node": ">=6.3.0" 
+  },
+  "dependencies": {
+    "botbuilder": "^3.7.0",
+    "mssql": "^3.3.0",
+    "nodemailer": "^3.1.5",
+    "restify": "^4.3.0",
+    "sprintf-js": "^1.0.3",
+    "azure-arm-resource": "^1.6.1-preview",
+    "ms-rest": "^1.15.7",
+    "ms-rest-azure": "^1.15.7"
+  }
+}
