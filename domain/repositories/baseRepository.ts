@@ -77,11 +77,11 @@ export class BaseRepository {
         }
     }
 
-    protected async executeSPNoResult(procedure: string, ...params: SQLParameter[]): Promise<DataResult<any>> {
+    async executeSPNoResult(procedure: string, ...params: SQLParameter[]): Promise<DataResult<any>> {
         return this.executeSP<DataResult<any>>(procedure, undefined, ...params);
     }
 
-    protected async executeSP<T>(procedure: string,
+    async executeSP<T>(procedure: string,
         recordSetToResult: (recordSet: any) => T,
         ...params: SQLParameter[]): Promise<DataResult<T>> {
 

@@ -9,26 +9,35 @@ begin
  from LoginRequest l  
   join users u on u.userid = l.userid   
  where temporaryProviderKey = @temporaryToken  
-  
- insert into userlogins(ProviderKey, userid, providerid)  
- values (@providerKey, @userId, @providerId)  
-  
-
-
- --delete from LoginRequest  
- --where temporaryProviderKey = @temporaryToken  
+     
   
  if(@userId is null)  
  begin  
-  select 0 success, 'Usuario não encontrado' [Message]  
+  select cast(0 as bit) success, 'Usuario não encontrado' [Message]  
   for json path  
  end  
  else   
  begin      
-    select 1 success, @providerKey providerKey, @userId userId, 
+	if(not exists(select 1 from userlogins 
+					where providerkey = @providerkey
+						and userid = @userid
+						and providerId = @providerId))
+		insert into userlogins(ProviderKey, userid, providerid, LoginData)  
+		values (@providerKey, @userId, @providerId, @details)  
+
+	delete from LoginRequest  
+	where temporaryProviderKey = @temporaryToken  
+
+	select cast(1 as bit) success, @providerKey providerKey, @userId userId, 
 		@details details, @name [name]
 	for json path
  end  
   
 end  
+
+GO
+
+
+
+
   

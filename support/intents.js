@@ -26,14 +26,14 @@ class IntentBuilder {
                 session.beginDialog("/generateCPF");
             }
         ]);
-        this.intents.matches(/^procurar item/i, [
+        this.intents.matches(/^procurar tarefa/i, [
             function (session) {
                 session.beginDialog("/searchItembacklog");
             }
         ]);
-        this.intents.matches(/^mudar projeto/i, [
+        this.intents.matches(/^procurar item/i, [
             function (session) {
-                session.beginDialog("/changeCurrentProject");
+                session.beginDialog("/searchItembacklog");
             }
         ]);
         this.intents.matches(/^lançar tarefa/i, [

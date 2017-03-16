@@ -15,6 +15,6 @@ begin
 end
 
 GO
-
+select * from [user]
 GetUserData 3
 --sp_helptext GetUserProjects

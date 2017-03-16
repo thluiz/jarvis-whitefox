@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const securityService_1 = require("../domain/services/securityService");
+const iteratorService_1 = require("../domain/services/iteratorService");
 const utilsService_1 = require("../domain/services/utilsService");
 const builder = require("botbuilder");
 const intents_1 = require("./intents");
@@ -122,11 +123,41 @@ class DialogBuilder {
                 session.endDialog(commands.data);
             });
         });
-        this.bot.dialog("/searchItembacklog", function (session) {
-            return __awaiter(this, void 0, void 0, function* () {
-                session.endDialog("search");
-            });
-        });
+        this.bot.dialog("/searchItembacklog", [
+            function (session, results, next) {
+                builder.Prompts.text(session, "Poderia informar parte do nome da tarefa?");
+            },
+            function (session, results) {
+                return __awaiter(this, void 0, void 0, function* () {
+                    const title = results.response;
+                    const maxItens = 5;
+                    const titleMinLength = 5;
+                    if (title.length > titleMinLength) {
+                        session.sendTyping();
+                        let result = yield iteratorService_1.IteratorService.SearchItemBackLog(session.userData.user, title, maxItens);
+                        if (!result.success) {
+                            session.endDialog(`Ops! aconteceu o erro ${result.message}`);
+                            return;
+                        }
+                        const data = result.data;
+                        if (data.items.length < data.totalCount) {
+                            session.send(`Hum... encontrei ${data.totalCount} registros, mas não tem problema.`);
+                            session.send(`Aqui vão os ${maxItens} mais recentes:`);
+                        }
+                        let list = "";
+                        data.items.forEach(el => {
+                            list += (`  ${el.id} - ${el.name} \n\n`);
+                        });
+                        session.send(list);
+                        session.endDialog();
+                    }
+                    else {
+                        session.send(`Assim você vai me dar muito trabalho, informe ao menos ${titleMinLength} caracteres para eu procurar.`);
+                        session.replaceDialog("/searchItembacklog");
+                    }
+                });
+            }
+        ]);
         this.bot.dialog("/createTask", function (session) {
             return __awaiter(this, void 0, void 0, function* () {
                 session.endDialog("create task");
