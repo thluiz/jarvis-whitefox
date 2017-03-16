@@ -13,31 +13,36 @@ const result_1 = require("../../support/result");
 class EmailService {
     static send(email, subject, body) {
         return __awaiter(this, void 0, void 0, function* () {
-            const nodemailer = require('nodemailer');
-            // create reusable transporter object using the default SMTP transport
-            let transporter = nodemailer.createTransport({
-                service: 'gmail',
-                auth: {
-                    user: process.env.EMAIL_USER,
-                    pass: process.env.EMAIL_PASS
-                }
-            });
-            // setup email data with unicode symbols
-            let mailOptions = {
-                from: '"Jarvis" <jarvis@whitefox.com.br>',
-                to: email,
-                subject: subject,
-                text: body,
-                html: body // html body
-            };
-            // send mail with defined transport object
-            yield transporter.sendMail(mailOptions, (error, info) => {
-                if (error) {
-                    return console.log(error);
-                }
-                console.log('Message %s sent: %s', info.messageId, info.response);
-            });
-            return result_1.Result.Ok();
+            try {
+                const nodemailer = require("nodemailer");
+                // create reusable transporter object using the default SMTP transport
+                let transporter = nodemailer.createTransport({
+                    service: "gmail",
+                    auth: {
+                        user: process.env.EMAIL_USER,
+                        pass: process.env.EMAIL_PASS
+                    }
+                });
+                // setup email data with unicode symbols
+                let mailOptions = {
+                    from: "\"Jarvis\" <jarvis@whitefox.com.br>",
+                    to: email,
+                    subject: subject,
+                    text: body,
+                    html: body // html body
+                };
+                // send mail with defined transport object
+                yield transporter.sendMail(mailOptions, (error, info) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    console.log("Message %s sent: %s", info.messageId, info.response);
+                });
+                return result_1.DataResult.Ok();
+            }
+            catch (error) {
+                return result_1.DataResult.Fail(error);
+            }
         });
     }
 }

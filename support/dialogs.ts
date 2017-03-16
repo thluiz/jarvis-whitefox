@@ -1,43 +1,50 @@
-import { SecurityService } from '../domain/services/securityService';
-import { UtilsService } from '../domain/services/utilsService';
-import * as builder from 'botbuilder';
-import { IntentBuilder } from './intents'
-import { Result } from './Result';
+import { SecurityService } from "../domain/services/securityService";
+import { UtilsService } from "../domain/services/utilsService";
+import * as builder from "botbuilder";
+import { IntentBuilder } from "./intents";
+import { DataResult } from "./Result";
+
 
 class DialogBuilder {
     bot: builder.UniversalBot;
 
-    private async createAccessToken(session: builder.Session, revokeAccess): Promise<Result> {
-        const userData = session.userData;
-        const email = userData.email;
-        const responseAdress = session.message.address;
+    private async createAccessToken(session: builder.Session, revokeAccess: boolean): Promise<DataResult<any>> {
+        const userData: any = session.userData;
+        const email: string = userData.email;
+        const responseAdress: builder.IAddress = session.message.address;
 
         if (revokeAccess && userData.token) {
             session.send("Revogando Token anterior...");
             session.sendTyping();
-            const revokeTokenResult = await SecurityService.revokeAccess(userData.token);
-            if (!revokeTokenResult.success)
+            const revokeTokenResult: DataResult<any> = await SecurityService.revokeAccess(userData.token);
+            if (!revokeTokenResult.success) {
                 return revokeTokenResult;
+            }
         }
 
         session.send("Criando Token de acesso...");
         session.sendTyping();
-        const tokenResult = await SecurityService.createLoginRequest(email, session.message.address);
-        if (!tokenResult.success)
-            return tokenResult;
+        const tokenResult: DataResult<string> = await SecurityService.createLoginRequest(email, responseAdress);
+        if (!tokenResult.success) {
+            return DataResult.Fail<any>(tokenResult.message);
+        }
 
         session.send(`Token criado, enviando email de liberação para ${email}...`);
         session.sendTyping();
 
-        const emailResult = await SecurityService.sendLoginRequestEmail(session.message.address.channelId, email, tokenResult.data);
-        if (!emailResult.success)
-            return emailResult;
+        const emailResult: DataResult<string> = await SecurityService.sendLoginRequestEmail(responseAdress.channelId,
+            email, tokenResult.data);
 
-        return Result.Ok()
+
+        if (!emailResult.success) {
+            return emailResult;
+        }
+
+        return DataResult.Ok();
     }
 
     constructor(connector) {
-        var self = this;
+        var self: DialogBuilder = this;
 
         var atualizarToken = function (session, results, revokeAccess = false) {
             var r = self.createAccessToken(session, revokeAccess).then(function (result) {
@@ -55,41 +62,44 @@ class DialogBuilder {
         this.bot = new builder.UniversalBot(connector);
         const intentBuilder = new IntentBuilder();
 
-        this.bot.dialog('/', intentBuilder.get());
+        this.bot.dialog("/", intentBuilder.get());
 
-        this.bot.dialog('/profile', [
+        this.bot.dialog("/profile", [
             function (session, results) {
-                session.beginDialog('/askEmail');
+                session.beginDialog("/askEmail");
             }
         ]);
 
-        this.bot.dialog('/askEmail', [
-            function (session, results, next) {
-                builder.Prompts.text(session, 'Qual seu email?');
-            }, function (session, results, next) {
-                var email = results.response;
-                if(email.indexOf("<a") != -1) //extract the email when it comes as <a href='mailto...
+        this.bot.dialog("/askEmail", [
+            function (session: builder.Session, results: any, next: Function) {
+                builder.Prompts.text(session, "Qual seu email?");
+            }, function (session: builder.Session, results: any, next: Function) {
+                var email: string = results.response;
+
+                // extract the email when it comes as <a href="mailto... (skype)
+                if (email.indexOf("<a") !== -1) {
                     email = email.match(/<a[^\b>]+>(.+)[\<]\/a>/)[1];
+                }
 
                 if (SecurityService.validateEmail(email)) {
                     session.userData.email = email;
                     next();
                 } else {
-                    session.send("Por favor, informe um e-mail válido");                    
-                    session.replaceDialog('/askEmail');
+                    session.send("Por favor, informe um e-mail válido");
+                    session.replaceDialog("/askEmail");
                 }
-            }, function (session, results) {
+            }, function (session: builder.Session, results: any) {
                 atualizarToken(session, results);
             }
         ]);
 
-        this.bot.dialog('/flipCoin', [
+        this.bot.dialog("/flipCoin", [
             function (session, args) {
                 builder.Prompts.choice(session, "Escolha Cara ou Coroa.", "Cara|Coroa")
             },
             function (session, results) {
-                var flip = Math.random() > 0.5 ? 'Cara' : 'Coroa';
-                if (flip == results.response.entity) {
+                var flip: string = Math.random() > 0.5 ? "Cara" : "Coroa";
+                if (flip === results.response.entity) {
                     session.endDialog("opa! saiu %s! Você venceu!", flip);
                 } else {
                     session.endDialog("hum... %s. você perdeu! mais sorte da próxima vez. :(", flip);
@@ -97,47 +107,44 @@ class DialogBuilder {
             }
         ]);
 
-        this.bot.dialog('/generateCPF', [
+        this.bot.dialog("/generateCPF", [
             async function (session, results) {
-                var cpf = await UtilsService.generateCPF();
-                session.endDialog(UtilsService.funnyResultMessage('CPF', cpf), cpf);
+                var cpf: string = await UtilsService.generateCPF();
+                session.endDialog(UtilsService.funnyResultMessage("CPF", cpf), cpf);
             }
         ]);
 
-        this.bot.dialog('/generateCNPJ', [
+        this.bot.dialog("/generateCNPJ", [
             async function (session, results) {
-                var cnpj = await UtilsService.generateCNPJ();
-                session.endDialog(UtilsService.funnyResultMessage('CNPJ', cnpj), cnpj);
+                var cnpj: string = await UtilsService.generateCNPJ();
+                session.endDialog(UtilsService.funnyResultMessage("CNPJ", cnpj), cnpj);
             }
         ]);
 
-        this.bot.dialog('/help', async function (session, userData) {
+        this.bot.dialog("/help", async function (session) {
             session.sendTyping();
-            const commands = await SecurityService.getAvailableCommands(session.userData.token);
+            const commands: DataResult<string> = await SecurityService.getAvailableCommands(session.userData.user);
             session.send("No momento os comandos disponíveis são: ");
-            session.endDialog(commands.message);
+            session.endDialog(commands.data);
         });
 
-        this.bot.dialog('/notifyApprovedToken', async function (session, userData) {
-            session.userData.name = userData.name;
-            session.userData.token = userData.token;
-            const commands = await SecurityService.getAvailableCommands(session.userData.token);
+        this.bot.dialog("/searchItembacklog", async function (session) {
+            session.endDialog("search");
+        });
 
-            const msg = `
-Olá ${userData.name},
+        this.bot.dialog("/createTask", async function (session) {
+            session.endDialog("create task");
+        });
 
-Acabo de receber a confirmação do seu acesso.
+        this.bot.dialog("/debug", async function (session) {
+            session.endDialog(JSON.stringify(session.userData));
+        });
 
-
-Ainda não possuo acesso a minha API de linguagem natural, então os comandos precisam ser executados tal qual estão descritos, ok?            
-
-
-No momento os comandos disponíveis são:
-
-${commands.message}
-
-`;
-            session.endDialog(msg);
+        this.bot.dialog("/saveSessionAndNotify", async function (session, data) {
+            session.userData.user = data.user;
+            session.userData.login = data.login;
+            const msg: DataResult<string> = await SecurityService.getWelcomeMessage(data.user);
+            session.endDialog(msg.data);
         });
     }
 }

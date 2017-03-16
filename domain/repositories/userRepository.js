@@ -9,18 +9,30 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const result_1 = require("../../support/result");
-const securityBaseRepository_1 = require("./securityBaseRepository");
-class UserLoginRepository extends securityBaseRepository_1.SecurityBaseRepository {
-    static revokeAccess(token) {
+const iteratorBaseRepository_1 = require("./iteratorBaseRepository");
+const baseRepository_1 = require("./baseRepository");
+const entities_1 = require("../entities");
+class UserRepository extends iteratorBaseRepository_1.IteratorBaseRepository {
+    load(securityId) {
         return __awaiter(this, void 0, void 0, function* () {
-            return result_1.Result.Ok();
+            const result = yield this.executeSP("GetUserData", entities_1.User.serialize, baseRepository_1.SQLParameter.Int("securityId", securityId));
+            if (!result.success)
+                return result;
+            return result_1.DataResult.Ok(result.data);
         });
     }
-    static getAvailableCommands(token) {
+    /** TODO: Refatorar */
+    static revokeAccess(token) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (!token)
-                return result_1.Result.Fail("Você precisa se logar para ter acesso aos comandos. Utilize o comando 'relogar'.");
-            return result_1.Result.Ok(`    
+            return result_1.DataResult.Ok();
+        });
+    }
+    static getAvailableCommands(user) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (user.id <= 0) {
+                return result_1.DataResult.Fail("Você precisa se logar para ter acesso aos comandos. Utilize o comando 'relogar'.");
+            }
+            return result_1.DataResult.Ok(`    
             'gerar CPF|CNPJ' - quem nunca precisou de um CPF ou CNPJ rapidinho para fazer um teste?            
 
             'jogar moeda' - para aqueles momentos de dúvida na vida.
@@ -29,10 +41,11 @@ class UserLoginRepository extends securityBaseRepository_1.SecurityBaseRepositor
 
             'atualizar token' - Gera um novo token de acesso para o usuário atual e atualiza as permissões.
 
-            'help|ajuda' - você é uma homem de pouca fé? não tem muito o eu que possa fazer ainda, mas vai rezando aí que daqui a pouco funciona...
+            'help|ajuda' - você é uma homem de pouca fé? não tem muito o eu que possa fazer ainda, 
+            mas vai rezando aí que daqui a pouco funciona...
         `);
         });
     }
 }
-exports.UserLoginRepository = UserLoginRepository;
-//# sourceMappingURL=userLoginRepository.js.map
+exports.UserRepository = UserRepository;
+//# sourceMappingURL=userRepository.js.map

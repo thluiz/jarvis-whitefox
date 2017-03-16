@@ -1,0 +1,8 @@
+{
+  "resolution": "main",
+  "tree": {
+    "src": "https://raw.githubusercontent.com/DefinitelyTyped/DefinitelyTyped/183a7fa0469be4e17419957bf163d5fe5bc15c2c/mssql/index.d.ts",
+    "raw": "registry:dt/mssql#3.3.0+20170311011547",
+    "typings": "https://raw.githubusercontent.com/DefinitelyTyped/DefinitelyTyped/183a7fa0469be4e17419957bf163d5fe5bc15c2c/mssql/index.d.ts"
+  }
+}

@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var sql = require('mssql');
+const sql = require("mssql");
 const result_1 = require("../../support/result");
 var ParameterType;
 (function (ParameterType) {
@@ -19,6 +19,9 @@ var ParameterType;
     ParameterType[ParameterType["Decimal"] = 4] = "Decimal";
 })(ParameterType = exports.ParameterType || (exports.ParameterType = {}));
 class SQLParameter {
+    static Int(name, value) {
+        return new SQLParameter(name, ParameterType.Int, value);
+    }
     static JSON(name, value) {
         return SQLParameter.NVarCharMax(name, JSON.stringify(value));
     }
@@ -64,7 +67,12 @@ class BaseRepository {
                 break;
         }
     }
-    executeSP(procedure, ...params) {
+    executeSPNoResult(procedure, ...params) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.executeSP(procedure, undefined, ...params);
+        });
+    }
+    executeSP(procedure, recordSetToResult, ...params) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 var connection = new sql.Connection({
@@ -72,24 +80,26 @@ class BaseRepository {
                     password: this.dbPassword,
                     server: this.dbAddress,
                     database: this.dbName,
+                    // needed to parse the procedure result, the typescript anotation, in this case, is wrong.
                     parseJSON: true,
-                    encrypt: true,
                     options: {
+                        // use this if you're on Windows Azure
                         encrypt: true,
                     }
                 });
                 yield connection.connect();
-                const request = new sql.Request(connection);
-                for (let p of params)
+                let request = new sql.Request(connection);
+                for (let p of params) {
                     request.input(p.name, BaseRepository.convertParameter(p.type, p.typeLength, p.typePrecision, p.typeScale), p.value);
+                }
                 var recordsets = yield request.execute(procedure);
-                if (recordsets.length > 0)
-                    return result_1.Result.Data(recordsets[0][0][0]);
-                else
-                    return result_1.Result.Ok();
+                if (recordsets.length > 0 && recordSetToResult) {
+                    return result_1.DataResult.Ok(recordSetToResult(recordsets[0]));
+                }
+                return result_1.DataResult.Ok();
             }
             catch (error) {
-                return result_1.Result.Fail(error);
+                return result_1.DataResult.Fail(error.message);
             }
         });
     }

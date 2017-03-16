@@ -6,8 +6,14 @@ begin
 	
 	select @providerId = providerId, @providerKey = providerKey, 
 		@userId = u.userId, @details = details, @name = u.[name]
-	from loginrequest l
+	from LoginRequest l
 		join users u on u.userid = l.userid 
+	where temporaryProviderKey = @temporaryToken
+
+	insert into userlogins(ProviderKey, userid, providerid)
+	values (@providerKey, @userId, @providerId)
+
+	delete from LoginRequest
 	where temporaryProviderKey = @temporaryToken
 
 	if(@userId is null)
@@ -16,7 +22,7 @@ begin
 		for json path
 	end
 	else 
-	begin 
+	begin			 
 		select 1 success, @details [Address],  
 		@name [Name], @providerKey Token
 		for json path
@@ -25,5 +31,3 @@ begin
 end
 
 go
-
-ApproveLoginRequest 'hLhxsPP3emPBQn9FfLVhW0GTUhnB6ssl'

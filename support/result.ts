@@ -1,25 +1,18 @@
-class Result  {  
-    success :boolean;
-    message :string;
-    data: any;
+export class DataResult<T> {
+    success: boolean;
+    message: string;
+    data: T;
 
-    private constructor(success, message, data) {
+    private constructor(success: boolean, data: T, message?: string) {
         this.success = success;
-        this.message = message;
         this.data = data;
     }
 
-    static Data(data?:string) :Result {
-        return new Result(true, undefined, data);
+    static Ok<T>(data?: T): DataResult<T> {
+        return new DataResult<T>(true, data);
     }
 
-    static Ok(message?:string, data?) :Result {
-        return new Result(true, message, data);
+    static Fail<T>(message?: string): DataResult<T> {
+        return new DataResult<T>(false, undefined, message);
     }
-
-    static Fail(message:string, data?) :Result {
-        return new Result(false, message, data);
-    }
-}  
-
-export { Result };
+}

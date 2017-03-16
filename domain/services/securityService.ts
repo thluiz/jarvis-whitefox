@@ -1,10 +1,14 @@
-import { Service } from './Service';
-import { Result } from '../../support/result';
-import { EmailService } from './emailService';
-import { IAddress } from 'botbuilder';
-import { Helpers } from '../../support/helpers';
-import { UserLoginRepository } from '../repositories/userLoginRepository'
-import { LoginRequestRepository } from '../repositories/loginRequestRepository'
+/// <reference path="../../typings/index.d.ts" />
+
+import { Service } from "./Service";
+import { DataResult } from "../../support/result";
+import { EmailService } from "./emailService";
+import { IAddress } from "botbuilder";
+import { Helpers } from "../../support/helpers";
+import { UserRepository } from "../repositories/userRepository";
+import { LoginRequestRepository } from "../repositories/loginRequestRepository";
+import { SecurityTemplates } from "./templates/securityTemplates";
+import { User, LoginRequest } from "../entities";
 
 export class SecurityService implements Service {
     static validateEmail(email: string): boolean {
@@ -12,45 +16,38 @@ export class SecurityService implements Service {
         return re.test(email);
     }
 
-    static async revokeAccess(token:string): Promise<Result> {
-        return UserLoginRepository.revokeAccess(token);
+    static async revokeAccess(token: string): Promise<DataResult<any>> {
+        return UserRepository.revokeAccess(token);
     }
 
-    static getAvailableCommands(token:string): Promise<Result> {
-        return UserLoginRepository.getAvailableCommands(token);
+    static getAvailableCommands(user: User): Promise<DataResult<string>> {
+        return UserRepository.getAvailableCommands(user);
     }
 
-    static async approveAccess(temporaryToken:string): Promise<Result> {
+    static async approveAccess(temporaryToken: string): Promise<DataResult<LoginRequest>> {
         return (new LoginRequestRepository()).approveAccess(temporaryToken);
     }
 
-    static async createLoginRequest(email: string, responseAdress: IAddress): Promise<Result> {
+    static async createLoginRequest(email: string, responseAddress: IAddress): Promise<DataResult<string>> {
         const token = Helpers.generateRandomString(18);
-        const temporaryToken = Helpers.generateRandomString(30);        
-        
-        const sp = await (new LoginRequestRepository()).create(email, token, temporaryToken, JSON.stringify(responseAdress));
-        sp.data = temporaryToken;
-        
-        return sp;
+        const temporaryToken = Helpers.generateRandomString(30);
+
+        const sp: DataResult<string> = await (new LoginRequestRepository())
+            .create(email, token, temporaryToken, JSON.stringify(responseAddress));
+        if (!sp.success) {
+            return DataResult.Fail<string>(sp.message);
+        }
+
+        return DataResult.Ok(temporaryToken);
     }
 
-    static async sendLoginRequestEmail(channel: string, email: string, temporaryToken: string): Promise<Result> {
-        const serverUrl = process.env.BOT_URL;
-        const body = `
-        Prezado,
-        <br /><br />
-        Aqui é o Jarvis, assistente virtual da White Fox.
-        <br /><br />
-        Um usuário no [${channel}] solicitou o acesso às minhas funções, caso seja você basta clicar <a href='${serverUrl}/api/security/allow/${temporaryToken}'>aqui</a>.
-        <br /><br />
-        Do contrário, basta desconsiderar que depois eu limpo.
-        <br /><br /><br />
-        Atencionsamente, 
-        <br />
-        --
-        Jarvis`;
-        
-        console.log(body);
-        return EmailService.send(email, "Habilitar acesso as minhas funções", body);
+    static async sendLoginRequestEmail(channel: string, email: string, temporaryToken: string): Promise<DataResult<string>> {
+        return EmailService.send(email, "Habilitar acesso as minhas funções",
+            SecurityTemplates.LoginRequestEmail(channel, temporaryToken));
     }
-}  
+
+    static async getWelcomeMessage(user: User): Promise<DataResult<string>> {
+        const commands: DataResult<string> = await SecurityService.getAvailableCommands(user);
+        return DataResult.Ok(SecurityTemplates.WelcomeMessage(user.name, commands.data));
+    }
+}

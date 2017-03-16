@@ -1,0 +1,1 @@
+{"version":3,"file":"securityTemplate.js","sourceRoot":"","sources":["securityTemplate.ts"],"names":[],"mappings":";;AAAA;IACI,MAAM,CAAC,iBAAiB,CAAC,OAAe,EAAE,cAAsB;QAC5D,MAAM,SAAS,GAAG,OAAO,CAAC,GAAG,CAAC,OAAO,CAAC;QACtC,MAAM,CAAC;;;;;yBAKU,OAAO,gFAAgF,SAAS,uBAAuB,cAAc;;;;;;;eAO/I,CAAC;IACZ,CAAC;CACJ;AAjBD,8CAiBC"}
