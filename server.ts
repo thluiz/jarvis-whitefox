@@ -29,14 +29,14 @@ server.get("/api/security/allow/:temporaryToken", async function (req, res, next
 
     const loginResult: DataResult<LoginRequest> = await SecurityService.approveAccess(temporaryToken);
     if (!loginResult.success) {
-        return res.send(`Ocorreu um erro - Tente novamente ou acione o suporte - mensagem: ${loginResult.data}`);
+        return res.send(`Ocorreu um erro ao aprovar o acesso - Tente novamente ou acione o suporte - mensagem: ${loginResult.data}`);
     }
 
     const UR: UserRepository = new UserRepository();
     const userResult: DataResult<User> = await UR.load(loginResult.data.securityId);
 
     if (!userResult.success) {
-        return res.send(`Ocorreu um erro - Tente novamente ou acione o suporte - mensagem: ${userResult.data}`);
+        return res.send(`Ocorreu um erro ao obter o usuário - Tente novamente ou acione o suporte - mensagem: ${userResult.data}`);
     }
 
     dialogs.bot.beginDialog(loginResult.data.address, "/saveSessionAndNotify", {
