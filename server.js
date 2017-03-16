@@ -36,7 +36,7 @@ server.get("/api/security/allow/:temporaryToken", function (req, res, next) {
         const UR = new userRepository_1.UserRepository();
         const userResult = yield UR.load(loginResult.data.securityId);
         if (!userResult.success) {
-            return res.send(`Ocorreu um erro ao obter o usuário - Tente novamente ou acione o suporte - mensagem: ${userResult.data}`);
+            return res.send(`Ocorreu um erro ao obter o usuario - Tente novamente ou acione o suporte - mensagem: ${userResult.message}`);
         }
         dialogs.bot.beginDialog(loginResult.data.address, "/saveSessionAndNotify", {
             login: loginResult.data,
