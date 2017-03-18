@@ -8,13 +8,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const baseRepository_1 = require("./baseRepository");
-const iteratorBaseRepository_1 = require("./iteratorBaseRepository");
 const entities_1 = require("../entities");
+const sqlParameter_1 = require("../sqlParameter");
+const iteratorBaseRepository_1 = require("./iteratorBaseRepository");
 class ProjectRepository extends iteratorBaseRepository_1.IteratorBaseRepository {
     getProjects(user) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield this.executeSP("GetUserProjects", entities_1.Project.serializeAll, baseRepository_1.SQLParameter.Int("userId", user.id));
+            return yield this.executeSP("GetUserProjects", entities_1.Project.serializeAll, sqlParameter_1.SQLParameter.Int("userId", user.id));
         });
     }
 }

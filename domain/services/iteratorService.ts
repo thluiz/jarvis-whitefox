@@ -1,39 +1,46 @@
-/// <reference path="../../typings/index.d.ts" />
-
-import { Service } from "./Service";
-import { DataResult } from "../../support/result";
-import { SQLParameter } from "../repositories/baseRepository";
-import { IteratorBaseRepository } from "../repositories/iteratorBaseRepository";
+import { Result } from "../../support/result";
 import * as Domain from "../entities";
+import { List } from "../list";
+import { IteratorBaseRepository } from "../repositories/iteratorBaseRepository";
+import { SQLParameter } from "../sqlParameter";
+import { IService } from "./iservice";
 
-export class ItemBacklogListWithTotalCount {
-    totalCount: number;
-    items: Domain.ItemBacklog[];
+const IR = new IteratorBaseRepository();
 
-    static serialize(recordset: any): ItemBacklogListWithTotalCount {
-        let ib: ItemBacklogListWithTotalCount = new ItemBacklogListWithTotalCount();
-        let items: Domain.ItemBacklog[] = [];
+export class IteratorService implements IService {
 
-        recordset[0][0].items.forEach(el => {
-            items.push(new Domain.ItemBacklog(el.id, el.name));
-        });
+    // tslint:disable-next-line:max-line-length
+    public static async SearchItemBackLog(user: Domain.User, title: string, maxItens: number): Promise<Result<List<Domain.ItemBacklog>>> {
 
-        ib.totalCount = recordset[0][0].total;
-        ib.items = items;
-        return ib;
-    }
-}
+        let serialize = (recordset: any) => {
+            let ib = new List<Domain.ItemBacklog>();
+            let items = [];
 
-export class IteratorService implements Service {
-    static async SearchItemBackLog(user: Domain.User, title: string, maxItens: number): Promise<DataResult<ItemBacklogListWithTotalCount>> {
-        const IR: IteratorBaseRepository = new IteratorBaseRepository();
+            recordset[0][0].items.forEach((el) => {
+                items.push(new Domain.ItemBacklog(el.id, el.name));
+            });
+
+            ib.totalCount = recordset[0][0].total;
+            ib.items = items;
+            return ib;
+        };
 
         return IR.executeSP("SearchItemBacklog",
-            ItemBacklogListWithTotalCount.serialize,
+            serialize,
             SQLParameter.Int("userId", user.id),
             SQLParameter.Int("maxItens", maxItens),
-            SQLParameter.NVarChar("title", title, 180)
+            SQLParameter.NVarChar("title", title, 180),
         );
     }
 
+    public static async createTask(user: Domain.User, itemBacklog: Domain.ItemBacklog,
+                                   title: string, complexity: number): Promise<Result<any>> {
+
+        return IR.executeSPNoResult("CreateTask",
+            SQLParameter.Int("userId", user.id),
+            SQLParameter.Int("itemBacklogId", itemBacklog.id),
+            SQLParameter.Decimal("complexity", complexity, 3, 1),
+            SQLParameter.NVarChar("title", title, 180),
+        );
+    }
 }

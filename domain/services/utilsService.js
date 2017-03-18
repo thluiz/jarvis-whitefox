@@ -1,4 +1,3 @@
-/// <reference path="../../typings/index.d.ts" />
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const sprintf_js_1 = require("sprintf-js");
@@ -7,7 +6,16 @@ class UtilsService {
     static randomNumber(n) {
         return Math.round(Math.random() * n);
     }
-    static generateCNPJ() {
+    static randomString(length = 13) {
+        let text = "";
+        const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        for (let i = 0; i < length; i++) {
+            text += possible.charAt(Math.floor(Math.random() * possible.length));
+        }
+        return text;
+    }
+    // tslint:disable-next-line:max-line-length
+    static generateCNPJ(formatting = { withDashs: true, withSlashs: true, withDots: true }) {
         let n = 9;
         let n1 = this.randomNumber(n);
         let n2 = this.randomNumber(n);
@@ -21,6 +29,7 @@ class UtilsService {
         let n10 = 0;
         let n11 = 0;
         let n12 = 1;
+        // tslint:disable-next-line:max-line-length
         let d1 = n12 * 2 + n11 * 3 + n10 * 4 + n9 * 5 + n8 * 6 + n7 * 7 + n6 * 8 + n5 * 9 + n4 * 2 + n3 * 3 + n2 * 4 + n1 * 5;
         d1 = 11 - (d1 % 11);
         if (d1 >= 10) {
@@ -33,9 +42,14 @@ class UtilsService {
         if (d2 >= 10) {
             d2 = 0;
         }
-        return "" + n1 + n2 + "." + n3 + n4 + n5 + "." + n6 + n7 + n8 + "/" + n9 + n10 + n11 + n12 + "-" + d1 + d2;
+        const dots = formatting.withDots ? "." : "";
+        const dashs = formatting.withDashs ? "-" : "";
+        const slashs = formatting.withSlashs ? "/" : "";
+        // tslint:disable-next-line:max-line-length
+        return "" + n1 + n2 + dots + n3 + n4 + n5 + dots + n6 + n7 + n8 + slashs + n9 + n10 + n11 + n12 + dashs + d1 + d2;
     }
-    static generateCPF() {
+    // tslint:disable-next-line:max-line-length
+    static generateCPF(formatting = { withDashs: true, withSlashs: true, withDots: true }) {
         let n = 9;
         let n1 = this.randomNumber(n);
         let n2 = this.randomNumber(n);
@@ -56,7 +70,9 @@ class UtilsService {
         if (d2 >= 10) {
             d2 = 0;
         }
-        return "" + n1 + n2 + n3 + "." + n4 + n5 + n6 + "." + n7 + n8 + n9 + "-" + d1 + d2;
+        const dots = formatting.withDots ? "." : "";
+        const dashs = formatting.withDashs ? "-" : "";
+        return "" + n1 + n2 + n3 + dots + n4 + n5 + n6 + dots + n7 + n8 + n9 + dashs + d1 + d2;
     }
     static funnyResultMessage(objectName, result) {
         return sprintf_js_1.sprintf(funnyKeyValueMessages_1.FunnyKeyValueMessages.random(), objectName, result);

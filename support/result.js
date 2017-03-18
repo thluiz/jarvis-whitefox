@@ -1,16 +1,17 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-class DataResult {
+class Result {
     constructor(success, data, message) {
         this.success = success;
         this.data = data;
+        this.message = message;
     }
     static Ok(data) {
-        return new DataResult(true, data);
+        return new Result(true, data);
     }
     static Fail(message) {
-        return new DataResult(false, undefined, message);
+        return new Result(false, undefined, message);
     }
 }
-exports.DataResult = DataResult;
+exports.Result = Result;
 //# sourceMappingURL=result.js.map

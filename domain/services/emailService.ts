@@ -1,44 +1,40 @@
-/// <reference path="../../typings/index.d.ts" />
+import { Result } from "../../support/result";
+import { IService } from "./iservice";
 
-import { Service } from "./service"
-import { DataResult } from "../../support/result"
-
-export class EmailService implements Service {
-    static async send(email: string, subject: string, body: string): Promise<DataResult<string>> {
+export class EmailService implements IService {
+    public static async send(email: string, subject: string, body: string): Promise<Result<string>> {
         try {
-
-
             const nodemailer = require("nodemailer");
 
             // create reusable transporter object using the default SMTP transport
             let transporter: any = nodemailer.createTransport({
-                service: "gmail",
                 auth: {
+                    pass: process.env.EMAIL_PASS,
                     user: process.env.EMAIL_USER,
-                    pass: process.env.EMAIL_PASS
-                }
+                },
+                service: "gmail",
             });
 
             // setup email data with unicode symbols
             let mailOptions = {
                 from: "\"Jarvis\" <jarvis@whitefox.com.br>", // sender address
-                to: email, // list of receivers
-                subject: subject,
+                html: body, // html body
+                subject,
                 text: body, // plain text body
-                html: body // html body
+                to: email, // list of receivers
             };
 
             // send mail with defined transport object
             await transporter.sendMail(mailOptions, (error, info) => {
                 if (error) {
-                    return console.log(error);
+                    return Result.Fail(error);
                 }
-                console.log("Message %s sent: %s", info.messageId, info.response);
+                Result.Fail(`Message ${info.messageId} sent: %{info.response}`);
             });
 
-            return DataResult.Ok<string>();
+            return Result.Ok<string>();
         } catch (error) {
-            return DataResult.Fail<string>(error);
+            return Result.Fail<string>(error);
         }
     }
-}  
+}

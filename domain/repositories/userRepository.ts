@@ -1,41 +1,39 @@
-import { DataResult } from '../../support/result';
-import { IteratorBaseRepository } from './iteratorBaseRepository'
-import { SQLParameter } from './baseRepository';
-import { User } from '../entities';
+import { Result } from "../../support/result";
+import { User } from "../entities";
+import { SQLParameter } from "../sqlParameter";
+import { IteratorBaseRepository } from "./iteratorBaseRepository";
 
 export class UserRepository extends IteratorBaseRepository {
 
-    async load(securityId: number): Promise<DataResult<User>> {
-        const result = await this.executeSP("GetUserData",
+    public async load(securityId: number): Promise<Result<User>> {
+        const result: Result<User> = await this.executeSP("GetUserData",
             User.serialize,
             SQLParameter.Int("securityId", securityId));
 
-        if (!result.success)
+        if (!result.success) {
             return result;
-
-        return DataResult.Ok(result.data);
-    }
-
-    /** TODO: Refatorar */
-    static async revokeAccess(token: string): Promise<DataResult<any>> {
-        return DataResult.Ok();
-    }
-
-    static async getAvailableCommands(user: User): Promise<DataResult<string>> {
-        if (user.id <= 0) {
-            return DataResult.Fail<string>("Você precisa se logar para ter acesso aos comandos. Utilize o comando 'relogar'.");
         }
 
-        return DataResult.Ok(`    
-            'gerar CPF|CNPJ' - quem nunca precisou de um CPF ou CNPJ rapidinho para fazer um teste?            
+        return Result.Ok(result.data);
+    }
 
-            'jogar moeda' - para aqueles momentos de dúvida na vida.
+    public async getAvailableCommands(user: User): Promise<Result<string>> {
+        if (user.id <= 0) {
+            const msg = "Você precisa se logar para ter acesso aos comandos. Utilize o comando 'relogar'.";
+            return Result.Fail<string>(msg);
+        }
+
+        // tslint:disable-next-line:max-line-length
+        return Result.Ok(`                
+            'gerar cpf' - Quem nunca precisou de um CPF ou CNPJ rapidinho para fazer um teste? é só pedir: "Oh! Grande Jarvis, poderia por obséquio gerar um CPF?"... não precisa disso tudo :), mas você entendeu a ideia né?
+            Estou ficando tão bom nisso que você pode pode ainda pedir detalhes da formação, 
+                por exemplo: "gerar cpf sem formatação" ou "preciso de um cpf sem pontos"...
+
+            '[jogar moeda]' - para aqueles momentos de dúvida na vida.
             
-            'relogar' - encerra sua sessão, pede um novo email e tenta gerar um novo token;
+            '[relogar]' - encerra sua sessão, pede um novo email e tenta gerar um novo token;
 
-            'atualizar token' - Gera um novo token de acesso para o usuário atual e atualiza as permissões.
-
-            'help|ajuda' - você é uma homem de pouca fé? não tem muito o eu que possa fazer ainda, 
+            '[help|ajuda]' - você é uma homem de pouca fé? não tem muito o eu que possa fazer ainda, 
             mas vai rezando aí que daqui a pouco funciona...
         `);
     }

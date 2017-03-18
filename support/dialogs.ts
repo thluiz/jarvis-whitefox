@@ -1,133 +1,20 @@
-import { SecurityService } from "../domain/services/securityService";
-import { IteratorService } from "../domain/services/iteratorService";
-import { UtilsService } from "../domain/services/utilsService";
 import * as builder from "botbuilder";
+import { ItembacklogRepository } from "../domain/repositories/itemBacklogRepository";
+import { IteratorService } from "../domain/services/iteratorService";
+import { SecurityService } from "../domain/services/securityService";
+import { UtilsService } from "../domain/services/utilsService";
 import { IntentBuilder } from "./intents";
-import { DataResult } from "./Result";
+import { Result } from "./Result";
 
 
 class DialogBuilder {
-    bot: builder.UniversalBot;
-
-    private async createAccessToken(session: builder.Session, revokeAccess: boolean): Promise<DataResult<any>> {
-        const userData: any = session.userData;
-        const email: string = userData.email;
-        const responseAdress: builder.IAddress = session.message.address;
-
-        if (revokeAccess && userData.token) {
-            session.send("Revogando Token anterior...");
-            session.sendTyping();
-            const revokeTokenResult: DataResult<any> = await SecurityService.revokeAccess(userData.token);
-            if (!revokeTokenResult.success) {
-                return revokeTokenResult;
-            }
-        }
-
-        session.send("Criando Token de acesso...");
-        session.sendTyping();
-        const tokenResult: DataResult<string> = await SecurityService.createLoginRequest(email, responseAdress);
-        if (!tokenResult.success) {
-            return DataResult.Fail<any>(tokenResult.message);
-        }
-
-        session.send(`Token criado, enviando email de liberação para ${email}...`);
-        session.sendTyping();
-
-        const emailResult: DataResult<string> = await SecurityService.sendLoginRequestEmail(responseAdress.channelId,
-            email, tokenResult.data);
-
-
-        if (!emailResult.success) {
-            return emailResult;
-        }
-
-        return DataResult.Ok();
-    }
+    private bot: builder.UniversalBot;
 
     constructor(connector) {
-        var self: DialogBuilder = this;
-
-        var atualizarToken = function (session, results, revokeAccess = false) {
-            var r = self.createAccessToken(session, revokeAccess).then(function (result) {
-                if (result.success) {
-                    session.endDialog("Email de validação enviado. Por favor, autorize o acesso às minhas funções!");
-                    return;
-                }
-
-                session.endDialog(`Ocorreu algum erro, por favor, acione o suporte: ${result.message}`);
-            }).catch(function (result) {
-                session.endDialog(`Ocorreu algum erro, por favor, acione o suporte: ${result.message}`);
-            });
-        };
+        const self: DialogBuilder = this;
 
         this.bot = new builder.UniversalBot(connector);
         const intentBuilder = new IntentBuilder();
-
-        this.bot.dialog("/", intentBuilder.get());
-
-        this.bot.dialog("/profile", [
-            function (session, results) {
-                session.beginDialog("/askEmail");
-            }
-        ]);
-
-        this.bot.dialog("/askEmail", [
-            function (session: builder.Session, results: any, next: Function) {
-                builder.Prompts.text(session, "Qual seu email?");
-            }, function (session: builder.Session, results: any, next: Function) {
-                var email: string = results.response;
-
-                // extract the email when it comes as <a href="mailto... (skype)
-                if (email.indexOf("<a") !== -1) {
-                    email = email.match(/<a[^\b>]+>(.+)[\<]\/a>/)[1];
-                }
-
-                if (SecurityService.validateEmail(email)) {
-                    session.userData.email = email;
-                    next();
-                } else {
-                    session.send("Por favor, informe um e-mail válido");
-                    session.replaceDialog("/askEmail");
-                }
-            }, function (session: builder.Session, results: any) {
-                atualizarToken(session, results);
-            }
-        ]);
-
-        this.bot.dialog("/flipCoin", [
-            function (session, args) {
-                builder.Prompts.choice(session, "Escolha Cara ou Coroa.", "Cara|Coroa")
-            },
-            function (session, results) {
-                var flip: string = Math.random() > 0.5 ? "Cara" : "Coroa";
-                if (flip === results.response.entity) {
-                    session.endDialog("opa! saiu %s! Você venceu!", flip);
-                } else {
-                    session.endDialog("hum... %s. você perdeu! mais sorte da próxima vez. :(", flip);
-                }
-            }
-        ]);
-
-        this.bot.dialog("/generateCPF", [
-            async function (session, results) {
-                var cpf: string = await UtilsService.generateCPF();
-                session.endDialog(UtilsService.funnyResultMessage("CPF", cpf), cpf);
-            }
-        ]);
-
-        this.bot.dialog("/generateCNPJ", [
-            async function (session, results) {
-                var cnpj: string = await UtilsService.generateCNPJ();
-                session.endDialog(UtilsService.funnyResultMessage("CNPJ", cnpj), cnpj);
-            }
-        ]);
-
-        this.bot.dialog("/help", async function (session) {
-            session.sendTyping();
-            const commands: DataResult<string> = await SecurityService.getAvailableCommands(session.userData.user);
-            session.send("No momento os comandos disponíveis são: ");
-            session.endDialog(commands.data);
-        });
 
         this.bot.dialog("/searchItembacklog", [
             function (session: builder.Session, results: any, next: Function) {
@@ -138,7 +25,7 @@ class DialogBuilder {
                 const maxItens: number = 5;
                 const titleMinLength: number = 5;
 
-                if (title.length > titleMinLength) {
+                if (title.length >= titleMinLength) {
                     session.sendTyping();
                     let result = await IteratorService.SearchItemBackLog(
                         session.userData.user, title, maxItens
@@ -167,20 +54,79 @@ class DialogBuilder {
             }]
         );
 
-        this.bot.dialog("/createTask", async function (session) {
-            session.endDialog("create task");
-        });
+        this.bot.dialog("/askItemBacklog", [
+            function (session: builder.Session, args: any, next: Function) {
+                builder.Prompts.number(session, !args.notFound ?
+                    `Em qual tarefa devo lançar${!args.retry ? "" : " então"}?`
+                    : "Não encontrei esse item, poderia confirmar?");
+            },
+            async function (session: builder.Session, results: any, next: Function) {
+                const IR: ItembacklogRepository = new ItembacklogRepository();
+                const itemBacklogDetails = await IR.load(results.response);
 
-        this.bot.dialog("/debug", async function (session) {
-            session.endDialog(JSON.stringify(session.userData));
-        });
+                if (!itemBacklogDetails.success) {
+                    session.send(`Ops! não encontrei esse item. Recebi a mensagem "${itemBacklogDetails.message}"`);
+                    session.endDialog();
+                }
 
-        this.bot.dialog("/saveSessionAndNotify", async function (session, data) {
-            session.userData.user = data.user;
-            session.userData.login = data.login;
-            const msg: DataResult<string> = await SecurityService.getWelcomeMessage(data.user);
-            session.endDialog(msg.data);
-        });
+                const itemBacklog = itemBacklogDetails.data;
+                if (!itemBacklog) {
+                    session.replaceDialog("/askItemBacklog", { notFound: true });
+                    return;
+                }
+
+                session.dialogData.itemBacklog = itemBacklog;
+                builder.Prompts.choice(session, "Confirma que é esse item?", "sim|não", { listStyle: builder.ListStyle.none });
+            }, function (session: builder.Session, results: any, next: Function) {
+                if (results.response.entity === "não") {
+                    session.dialogData.itemBacklog = undefined;
+                    session.replaceDialog("/askItemBacklog", { retry: true });
+                    return;
+                }
+
+                if (next) {
+                    next();
+                }
+            }
+        ]);
+
+        this.bot.dialog("/createActivity", [
+            function (session: builder.Session, args: any, next: Function) {
+                builder.Prompts.text(session, !args.smallTitle ?
+                    "O que você fez?"
+                    : "vamos lá! eu sei que você descrever melhor seu trabalho... ");
+            },
+            function (session: builder.Session, results: any, next: Function) {
+                session.dialogData.title = results.response;
+                if (session.dialogData.title.length < 3) {
+                    session.replaceDialog("/createActivity", { smallTitle: true });
+                    return;
+                }
+
+                session.beginDialog("/askItemBacklog");
+            }, function (session: builder.Session, results: any, next: Function) {
+                builder.Prompts.choice(session, "Qual a complexidade?", "0.5|1|2", { listStyle: builder.ListStyle.button });
+            }, async function (session: builder.Session, results: any, next: Function) {
+                session.dialogData.complexity = results.response.entity;
+
+                session.send("Já tenho tudo que preciso, estou criando a tarefa...");
+                session.sendTyping();
+
+                const createTaskResult = await IteratorService.createTask(
+                    session.userData.user,
+                    session.dialogData.title,
+                    session.dialogData.itemBacklog,
+                    session.dialogData.complexity
+                );
+
+                if (!createTaskResult.success) {
+                    session.endDialog(`Um aconteceu algum problema... a mensagem foi: ${createTaskResult}`);
+                    return;
+                }
+
+                session.endDialog("Tarefa lançada!");
+            }
+        ]);
     }
 }
 

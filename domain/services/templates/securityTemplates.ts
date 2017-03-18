@@ -1,17 +1,14 @@
-/// <reference path="../../../typings/index.d.ts" />
+// tslint:disable:max-line-length
 
 export class SecurityTemplates {
 
-    static WelcomeMessage(name: string, commands: string): string {
+    public static WelcomeMessage(name: string, commands: string): string {
         return `
 Olá ${name},
 
 Acabo de receber a confirmação do seu acesso.
 
-
-Ainda não possuo acesso a minha API de linguagem natural, 
-então os comandos precisam ser executados tal qual estão descritos, ok?            
-
+Minha API de linguagem natural só está funcionando parcialmente, então os comandos entre [] precisam ser executados tal qual estão descritos, por exemplo: [ajuda], [help], [jogar moeda].
 
 No momento os comandos disponíveis são:
 
@@ -19,7 +16,7 @@ ${commands}
 `;
     }
 
-    static LoginRequestEmail(channel: string, temporaryToken: string): string {
+    public static LoginRequestEmail(channel: string, temporaryToken: string): string {
         return `
 Prezado,
 <br /><br />

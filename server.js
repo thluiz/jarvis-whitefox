@@ -1,4 +1,3 @@
-/// <reference path="typings/index.d.ts" />
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -9,43 +8,53 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const restify = require("restify");
 const builder = require("botbuilder");
-const dialogs_1 = require("./support/dialogs");
-const securityService_1 = require("./domain/services/securityService");
+const restify = require("restify");
+const Dialogs = require("./dialogs/dialogs");
 const userRepository_1 = require("./domain/repositories/userRepository");
-// setup Restify Server
-var server = restify.createServer();
-server.listen(process.env.port || process.env.PORT || 3978, function () {
+const securityService_1 = require("./domain/services/securityService");
+const Intents = require("./intents/intents");
+/*** RESTIFY ***/
+const server = restify.createServer();
+server.listen(process.env.port || process.env.PORT || 3978, () => {
     console.log("%s listening to %s", server.name, server.url);
 });
-// create chat bot
-var connector = new builder.ChatConnector({
+/*** CHAT BOT ***/
+const connector = new builder.ChatConnector({
     appId: process.env.MICROSOFT_APP_ID,
     appPassword: process.env.MICROSOFT_APP_PASSWORD
 });
-var dialogs = new dialogs_1.DialogBuilder(connector);
+const bot = new builder.UniversalBot(connector);
+const recognizer = new builder.LuisRecognizer(process.env.LUIS_ENDPOINT);
+const dialog = new builder.IntentDialog({ recognizers: [recognizer] });
+/*** DIALOGS ***/
+[new Dialogs.Commands()].forEach((d) => d.setup(bot));
+/*** INTENTS ***/
+[new Intents.GenerateDocument(),
+    new Intents.Commands()].forEach((intent) => intent.setup(dialog));
+bot.dialog("/", dialog);
+/*** API ***/
 server.post("/api/messages", connector.listen());
-server.get("/api/security/allow/:temporaryToken", function (req, res, next) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const temporaryToken = req.params.temporaryToken;
-        const loginResult = yield securityService_1.SecurityService.approveAccess(temporaryToken);
-        if (!loginResult.success) {
-            return res.send(`Ocorreu um erro ao aprovar o acesso - Tente novamente ou acione o suporte - mensagem: ${loginResult.data}`);
-        }
-        const UR = new userRepository_1.UserRepository();
-        const userResult = yield UR.load(loginResult.data.securityId);
-        if (!userResult.success) {
-            return res.send(`Ocorreu um erro ao obter o usuario - Tente novamente ou acione o suporte - mensagem: ${userResult.message}`);
-        }
-        dialogs.bot.beginDialog(loginResult.data.address, "/saveSessionAndNotify", {
-            login: loginResult.data,
-            user: userResult.data
-        });
-        if (next) {
-            next();
-        }
-        return res.send(`Token liberado, nos falamos pelo chat!`);
+server.get("/api/security/allow/:temporaryToken", (request, response, next) => __awaiter(this, void 0, void 0, function* () {
+    const temporaryToken = request.params.temporaryToken;
+    const loginResult = yield securityService_1.SecurityService.approveAccess(temporaryToken);
+    if (!loginResult.success) {
+        response.send("Ocorreu um erro ao aprovar o acesso");
+        return response.send(`Tente novamente ou acione o suporte - mensagem: ${loginResult.data}`);
+    }
+    const UR = new userRepository_1.UserRepository();
+    const userResult = yield UR.load(loginResult.data.securityId);
+    if (!userResult.success) {
+        response.send("Ocorreu um erro ao obter o usuario");
+        return response.send(`Tente novamente ou acione o suporte - mensagem: ${userResult.message}`);
+    }
+    bot.beginDialog(loginResult.data.address, "/saveSessionAndNotify", {
+        login: loginResult.data,
+        user: userResult.data,
     });
-});
+    if (next) {
+        next();
+    }
+    return response.send(`Token liberado, nos falamos pelo chat!`);
+}));
 //# sourceMappingURL=server.js.map

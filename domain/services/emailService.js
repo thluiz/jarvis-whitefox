@@ -1,4 +1,3 @@
-/// <reference path="../../typings/index.d.ts" />
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -17,31 +16,31 @@ class EmailService {
                 const nodemailer = require("nodemailer");
                 // create reusable transporter object using the default SMTP transport
                 let transporter = nodemailer.createTransport({
-                    service: "gmail",
                     auth: {
+                        pass: process.env.EMAIL_PASS,
                         user: process.env.EMAIL_USER,
-                        pass: process.env.EMAIL_PASS
-                    }
+                    },
+                    service: "gmail",
                 });
                 // setup email data with unicode symbols
                 let mailOptions = {
                     from: "\"Jarvis\" <jarvis@whitefox.com.br>",
-                    to: email,
-                    subject: subject,
+                    html: body,
+                    subject,
                     text: body,
-                    html: body // html body
+                    to: email,
                 };
                 // send mail with defined transport object
                 yield transporter.sendMail(mailOptions, (error, info) => {
                     if (error) {
-                        return console.log(error);
+                        return result_1.Result.Fail(error);
                     }
-                    console.log("Message %s sent: %s", info.messageId, info.response);
+                    result_1.Result.Fail(`Message ${info.messageId} sent: %{info.response}`);
                 });
-                return result_1.DataResult.Ok();
+                return result_1.Result.Ok();
             }
             catch (error) {
-                return result_1.DataResult.Fail(error);
+                return result_1.Result.Fail(error);
             }
         });
     }

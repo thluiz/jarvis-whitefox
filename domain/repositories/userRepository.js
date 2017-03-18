@@ -9,39 +9,36 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const result_1 = require("../../support/result");
-const iteratorBaseRepository_1 = require("./iteratorBaseRepository");
-const baseRepository_1 = require("./baseRepository");
 const entities_1 = require("../entities");
+const sqlParameter_1 = require("../sqlParameter");
+const iteratorBaseRepository_1 = require("./iteratorBaseRepository");
 class UserRepository extends iteratorBaseRepository_1.IteratorBaseRepository {
     load(securityId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const result = yield this.executeSP("GetUserData", entities_1.User.serialize, baseRepository_1.SQLParameter.Int("securityId", securityId));
-            if (!result.success)
+            const result = yield this.executeSP("GetUserData", entities_1.User.serialize, sqlParameter_1.SQLParameter.Int("securityId", securityId));
+            if (!result.success) {
                 return result;
-            return result_1.DataResult.Ok(result.data);
+            }
+            return result_1.Result.Ok(result.data);
         });
     }
-    /** TODO: Refatorar */
-    static revokeAccess(token) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return result_1.DataResult.Ok();
-        });
-    }
-    static getAvailableCommands(user) {
+    getAvailableCommands(user) {
         return __awaiter(this, void 0, void 0, function* () {
             if (user.id <= 0) {
-                return result_1.DataResult.Fail("Você precisa se logar para ter acesso aos comandos. Utilize o comando 'relogar'.");
+                const msg = "Você precisa se logar para ter acesso aos comandos. Utilize o comando 'relogar'.";
+                return result_1.Result.Fail(msg);
             }
-            return result_1.DataResult.Ok(`    
-            'gerar CPF|CNPJ' - quem nunca precisou de um CPF ou CNPJ rapidinho para fazer um teste?            
+            // tslint:disable-next-line:max-line-length
+            return result_1.Result.Ok(`                
+            'gerar cpf' - Quem nunca precisou de um CPF ou CNPJ rapidinho para fazer um teste? é só pedir: "Oh! Grande Jarvis, poderia por obséquio gerar um CPF?"... não precisa disso tudo :), mas você entendeu a ideia né?
+            Estou ficando tão bom nisso que você pode pode ainda pedir detalhes da formação, 
+                por exemplo: "gerar cpf sem formatação" ou "preciso de um cpf sem pontos"...
 
-            'jogar moeda' - para aqueles momentos de dúvida na vida.
+            '[jogar moeda]' - para aqueles momentos de dúvida na vida.
             
-            'relogar' - encerra sua sessão, pede um novo email e tenta gerar um novo token;
+            '[relogar]' - encerra sua sessão, pede um novo email e tenta gerar um novo token;
 
-            'atualizar token' - Gera um novo token de acesso para o usuário atual e atualiza as permissões.
-
-            'help|ajuda' - você é uma homem de pouca fé? não tem muito o eu que possa fazer ainda, 
+            '[help|ajuda]' - você é uma homem de pouca fé? não tem muito o eu que possa fazer ainda, 
             mas vai rezando aí que daqui a pouco funciona...
         `);
         });

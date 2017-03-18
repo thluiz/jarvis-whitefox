@@ -1,8 +1,6 @@
-/// <reference path="../../../typings/index.d.ts" />
-
 export class FunnyKeyValueMessages {
 
-    static all(): string[] {
+    public static all(): string[] {
         return [
             "Segue um %s saindo do forno: %s!",
             "Segue um %s fresquinho: %s!",
@@ -35,7 +33,7 @@ export class FunnyKeyValueMessages {
         ];
     }
 
-    static random(): string {
+    public static random(): string {
         const messages = this.all();
         return messages[Math.floor(Math.random() * messages.length)];
     }

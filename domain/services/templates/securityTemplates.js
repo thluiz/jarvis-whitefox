@@ -1,4 +1,4 @@
-/// <reference path="../../../typings/index.d.ts" />
+// tslint:disable:max-line-length
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class SecurityTemplates {
@@ -8,10 +8,7 @@ Olá ${name},
 
 Acabo de receber a confirmação do seu acesso.
 
-
-Ainda não possuo acesso a minha API de linguagem natural, 
-então os comandos precisam ser executados tal qual estão descritos, ok?            
-
+Minha API de linguagem natural só está funcionando parcialmente, então os comandos entre [] precisam ser executados tal qual estão descritos, por exemplo: [ajuda], [help], [jogar moeda].
 
 No momento os comandos disponíveis são:
 
