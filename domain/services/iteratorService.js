@@ -19,12 +19,8 @@ class IteratorService {
         return __awaiter(this, void 0, void 0, function* () {
             let serialize = (recordset) => {
                 let ib = new list_1.List();
-                let items = [];
-                recordset[0][0].items.forEach((el) => {
-                    items.push(new Domain.ItemBacklog(el.id, el.name));
-                });
-                ib.totalCount = recordset[0][0].total;
-                ib.items = items;
+                ib.totalCount = recordset.total;
+                ib.items = recordset.items.map(Domain.ItemBacklog.serialize);
                 return ib;
             };
             return IR.executeSP("SearchItemBacklog", serialize, sqlParameter_1.SQLParameter.Int("userId", user.id), sqlParameter_1.SQLParameter.Int("maxItens", maxItens), sqlParameter_1.SQLParameter.NVarChar("title", title, 180));

@@ -1,9 +1,9 @@
 import { IAddress } from "botbuilder";
-import { Result } from "../../support/result";
+import { Result } from "../../domain/result";
 import { LoginRequest, User } from "../entities";
 import { LoginRequestRepository } from "../repositories/loginRequestRepository";
 import { UserRepository } from "../repositories/userRepository";
-import { IService } from "./iservice";
+import { IService } from "./service";
 import { EmailService, UtilsService } from "./service";
 import { SecurityTemplates } from "./templates/securityTemplates";
 
@@ -28,8 +28,8 @@ export class SecurityService implements IService {
         const token = UtilsService.randomString(18);
         const temporaryToken = UtilsService.randomString(30);
 
-        const sp = await (new LoginRequestRepository()).create(
-                            email, token, temporaryToken, JSON.stringify(responseAddress));
+        const sp = await (new LoginRequestRepository()).create(email,
+            token, temporaryToken, responseAddress);
 
         if (!sp.success) {
             return Result.Fail<string>(sp.message);
@@ -38,8 +38,8 @@ export class SecurityService implements IService {
         return Result.Ok(temporaryToken);
     }
 
-    public static async sendLoginRequestEmail(channel: string,
-                                              email: string, temporaryToken: string): Promise<Result<string>> {
+    public static async sendLoginRequestEmail(channel: string, email: string,
+                                              temporaryToken: string): Promise<Result<string>> {
 
         return EmailService.send(email, "Habilitar acesso as minhas funções",
             SecurityTemplates.LoginRequestEmail(channel, temporaryToken));

@@ -5,6 +5,9 @@ class SQLParameter {
     static Int(name, value) {
         return new SQLParameter(name, parameterType_1.ParameterType.Int, value);
     }
+    static Boolean(name, value) {
+        return new SQLParameter(name, parameterType_1.ParameterType.Boolean, value ? 1 : 0);
+    }
     static JSON(name, value) {
         return SQLParameter.NVarCharMax(name, JSON.stringify(value));
     }

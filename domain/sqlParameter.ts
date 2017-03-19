@@ -6,6 +6,10 @@ export class SQLParameter {
         return new SQLParameter(name, ParameterType.Int, value);
     }
 
+    public static Boolean(name: string, value: boolean) {
+        return new SQLParameter(name, ParameterType.Boolean, value ? 1 : 0);
+    }
+
     public static JSON(name: string, value: any) {
         return SQLParameter.NVarCharMax(name, JSON.stringify(value));
     }

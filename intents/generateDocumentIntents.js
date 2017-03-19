@@ -2,8 +2,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const builder = require("botbuilder");
 const utilsService_1 = require("../domain/services/utilsService");
-class GenerateDocumentIntents {
+const intentBase_1 = require("./intentBase");
+class GenerateDocumentIntents extends intentBase_1.IntentBase {
     constructor() {
+        super(...arguments);
         this.DocumentTypes = {
             CNPJ: "cnpj",
             CPF: "cpf",
@@ -25,7 +27,7 @@ class GenerateDocumentIntents {
                     session.endDialog(`Desculpe, ainda não tenho gerador para ${documentType.entity}`);
                     return;
                 }
-                let formatting = { withDashs: true, withDots: true, withSlashs: true };
+                let formatting = { withDashs: true, withDots: true, withSlashs: true, withFluffy: false };
                 builder.EntityRecognizer.findAllEntities(args.entities, "formatting").forEach((result) => {
                     formatting = self.setFormatting(formatting, result);
                 });
@@ -64,6 +66,9 @@ class GenerateDocumentIntents {
                 formatting.withDots = true;
                 formatting.withDashs = true;
             }
+        }
+        if (result.entity.indexOf("bonit") >= 0) {
+            formatting.withFluffy = true;
         }
         if (result.entity.indexOf("sem") >= 0) {
             if (result.entity.indexOf("traços") >= 0) {

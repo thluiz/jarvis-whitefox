@@ -4,4 +4,5 @@ export enum ParameterType {
     NVarCharMax,
     Text,
     Decimal,
+    Boolean,
 }

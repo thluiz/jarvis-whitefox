@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const sql = require("mssql");
-const result_1 = require("../../support/result");
+const result_1 = require("../../domain/result");
 const parameterType_1 = require("../parameterType");
 class BaseRepository {
     constructor(dbAddress, dbName, dbUserName, dbPassword) {
@@ -44,8 +44,21 @@ class BaseRepository {
                     request.input(p.name, this.convertParameter(p.type, p.typeLength, p.typePrecision, p.typeScale), p.value);
                 }
                 const recordsets = yield request.execute(procedure);
-                if (recordsets.length > 0 && recordSetToResult) {
-                    return result_1.Result.Ok(recordSetToResult(recordsets[0]));
+                if (recordsets.length > 0) {
+                    const principal = recordsets[0];
+                    if (principal[0]
+                        && principal[0][0]) {
+                        if (principal[0][0].success !== undefined
+                            && !principal[0][0].success) {
+                            return result_1.Result.Fail(principal[0][0].message || "Ocorreu um erro não definido");
+                        }
+                        if (recordSetToResult) {
+                            return result_1.Result.Ok(recordSetToResult(principal[0][0]));
+                        }
+                    }
+                    if (recordSetToResult) {
+                        return result_1.Result.Ok(recordSetToResult(principal));
+                    }
                 }
                 return result_1.Result.Ok();
             }
@@ -58,6 +71,8 @@ class BaseRepository {
         switch (type) {
             case parameterType_1.ParameterType.Int:
                 return sql.Int;
+            case parameterType_1.ParameterType.Boolean:
+                return sql.Bit;
             case parameterType_1.ParameterType.Decimal:
                 return sql.Decimal(precision, scale);
             case parameterType_1.ParameterType.NVarChar:

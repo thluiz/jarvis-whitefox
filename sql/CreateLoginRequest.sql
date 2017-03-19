@@ -5,7 +5,7 @@ begin
   
 	if(@userId is null) 
 	begin
-		select cast(0 as bit) success, 'Usuário não encontrato' mensagem
+		select cast(0 as bit) success, 'Usuário não encontrato' [message]
 		for json path
 	end
 	else

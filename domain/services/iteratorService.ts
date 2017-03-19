@@ -1,9 +1,9 @@
-import { Result } from "../../support/result";
+import { Result } from "../../domain/result";
 import * as Domain from "../entities";
 import { List } from "../list";
 import { IteratorBaseRepository } from "../repositories/iteratorBaseRepository";
 import { SQLParameter } from "../sqlParameter";
-import { IService } from "./iservice";
+import { IService } from "./service";
 
 const IR = new IteratorBaseRepository();
 
@@ -14,14 +14,9 @@ export class IteratorService implements IService {
 
         let serialize = (recordset: any) => {
             let ib = new List<Domain.ItemBacklog>();
-            let items = [];
 
-            recordset[0][0].items.forEach((el) => {
-                items.push(new Domain.ItemBacklog(el.id, el.name));
-            });
-
-            ib.totalCount = recordset[0][0].total;
-            ib.items = items;
+            ib.totalCount = recordset.total;
+            ib.items = recordset.items.map(Domain.ItemBacklog.serialize);
             return ib;
         };
 

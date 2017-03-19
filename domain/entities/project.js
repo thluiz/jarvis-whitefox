@@ -2,14 +2,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 class Project {
     static serialize(recordSet) {
-        return new Project(recordSet.Id, recordSet.Name);
+        return Project.create(recordSet.id, recordSet.name);
     }
     static serializeAll(recordSet) {
-        let projects = [];
-        recordSet[0][0].forEach(p => {
-            projects.push(Project.create(p.id, p.name));
-        });
-        return projects;
+        return recordSet.map(this.serialize);
     }
     static create(id, name) {
         return new Project(id, name);

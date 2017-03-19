@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const sprintf_js_1 = require("sprintf-js");
-const funnyKeyValueMessages_1 = require("./templates/funnyKeyValueMessages");
+const funnyMessages_1 = require("./templates/funnyMessages");
 class UtilsService {
     static randomNumber(n) {
         return Math.round(Math.random() * n);
@@ -15,7 +15,7 @@ class UtilsService {
         return text;
     }
     // tslint:disable-next-line:max-line-length
-    static generateCNPJ(formatting = { withDashs: true, withSlashs: true, withDots: true }) {
+    static generateCNPJ(formatting = { withDashs: true, withSlashs: true, withDots: true, withFluffy: false }) {
         let n = 9;
         let n1 = this.randomNumber(n);
         let n2 = this.randomNumber(n);
@@ -45,11 +45,12 @@ class UtilsService {
         const dots = formatting.withDots ? "." : "";
         const dashs = formatting.withDashs ? "-" : "";
         const slashs = formatting.withSlashs ? "/" : "";
+        const fluffy = formatting.withFluffy ? "(L)(F):)(F)(L)" : "";
         // tslint:disable-next-line:max-line-length
-        return "" + n1 + n2 + dots + n3 + n4 + n5 + dots + n6 + n7 + n8 + slashs + n9 + n10 + n11 + n12 + dashs + d1 + d2;
+        return "" + n1 + n2 + dots + n3 + n4 + n5 + dots + n6 + n7 + n8 + slashs + n9 + n10 + n11 + n12 + dashs + d1 + d2 + fluffy;
     }
     // tslint:disable-next-line:max-line-length
-    static generateCPF(formatting = { withDashs: true, withSlashs: true, withDots: true }) {
+    static generateCPF(formatting = { withDashs: true, withSlashs: true, withDots: true, withFluffy: false }) {
         let n = 9;
         let n1 = this.randomNumber(n);
         let n2 = this.randomNumber(n);
@@ -72,10 +73,11 @@ class UtilsService {
         }
         const dots = formatting.withDots ? "." : "";
         const dashs = formatting.withDashs ? "-" : "";
-        return "" + n1 + n2 + n3 + dots + n4 + n5 + n6 + dots + n7 + n8 + n9 + dashs + d1 + d2;
+        const fluffy = formatting.withFluffy ? " (L)(F):)(F)(L) " : "";
+        return "" + fluffy + n1 + n2 + n3 + dots + n4 + n5 + n6 + dots + n7 + n8 + n9 + dashs + d1 + d2;
     }
     static funnyResultMessage(objectName, result) {
-        return sprintf_js_1.sprintf(funnyKeyValueMessages_1.FunnyKeyValueMessages.random(), objectName, result);
+        return sprintf_js_1.sprintf(funnyMessages_1.FunnyMessages.randomKeyValueMessage(), objectName, result);
     }
 }
 exports.UtilsService = UtilsService;

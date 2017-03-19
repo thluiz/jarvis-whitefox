@@ -1,8 +1,8 @@
 import * as builder from "botbuilder";
 import { IFormattingOptions, UtilsService } from "../domain/services/utilsService";
-import { IIntentBase } from "./intentBase";
+import { IntentBase } from "./intentBase";
 
-export class GenerateDocumentIntents implements IIntentBase {
+export class GenerateDocumentIntents extends IntentBase {
 
     private DocumentTypes = {
         CNPJ: "cnpj",
@@ -28,7 +28,7 @@ export class GenerateDocumentIntents implements IIntentBase {
                     return;
                 }
 
-                let formatting = { withDashs: true, withDots: true, withSlashs: true };
+                let formatting = { withDashs: true, withDots: true, withSlashs: true, withFluffy: false };
                 builder.EntityRecognizer.findAllEntities(args.entities, "formatting").forEach((result) => {
                     formatting = self.setFormatting(formatting, result);
                 });
@@ -74,6 +74,10 @@ export class GenerateDocumentIntents implements IIntentBase {
                 formatting.withDots = true;
                 formatting.withDashs = true;
             }
+        }
+
+        if (result.entity.indexOf("bonit") >= 0) {
+            formatting.withFluffy = true;
         }
 
         if (result.entity.indexOf("sem") >= 0) {

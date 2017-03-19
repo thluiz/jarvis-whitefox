@@ -1,4 +1,4 @@
-import { Result } from "../../support/result";
+import { Result } from "../../domain/result";
 import { ItemBacklog } from "../entities";
 import { SQLParameter } from "../sqlParameter";
 import { IteratorBaseRepository } from "./iteratorBaseRepository";

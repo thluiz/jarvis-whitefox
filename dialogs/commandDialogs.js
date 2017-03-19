@@ -10,8 +10,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const builder = require("botbuilder");
 const iteratorBaseRepository_1 = require("../domain/repositories/iteratorBaseRepository");
+const result_1 = require("../domain/result");
 const SecurityService_1 = require("../domain/services/SecurityService");
-const result_1 = require("../support/result");
 const IR = new iteratorBaseRepository_1.IteratorBaseRepository();
 class CommandDialogs {
     setup(bot) {
@@ -38,8 +38,10 @@ class CommandDialogs {
             session.endDialog(msg.data);
         }));
         bot.dialog("/askEmail", [
-            (session, results, next) => {
-                builder.Prompts.text(session, "Qual seu email?");
+            (session, args, next) => {
+                builder.Prompts.text(session, !args || !args.invalidEmail ?
+                    "Qual seu email?"
+                    : "Por favor, poderia informar um e-mail válido?");
             }, (session, results, next) => {
                 let email = results.response;
                 // extract the email when it comes as <a href="mailto... (skype)
@@ -51,8 +53,7 @@ class CommandDialogs {
                     next();
                 }
                 else {
-                    session.send("Por favor, informe um e-mail válido");
-                    session.replaceDialog("/askEmail");
+                    session.replaceDialog("/askEmail", { invalidEmail: true });
                 }
             }, (session, results) => {
                 this.atualizarToken(session, results);
@@ -70,7 +71,7 @@ class CommandDialogs {
                 else {
                     session.endDialog("hum... %s. você perdeu! mais sorte da próxima vez. :(", flip);
                 }
-            }
+            },
         ]);
     }
     atualizarToken(session, results, revokeAccess = false) {

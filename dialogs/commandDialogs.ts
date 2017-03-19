@@ -1,7 +1,7 @@
 import * as builder from "botbuilder";
 import { IteratorBaseRepository } from "../domain/repositories/iteratorBaseRepository";
+import { Result } from "../domain/result";
 import { SecurityService } from "../domain/services/SecurityService";
-import { Result } from "../support/result";
 import { IDialogBase } from "./dialogBase";
 
 const IR: IteratorBaseRepository = new IteratorBaseRepository();
@@ -37,8 +37,10 @@ export class CommandDialogs implements IDialogBase {
         });
 
         bot.dialog("/askEmail", [
-            (session: builder.Session, results: any, next: Function) => {
-                builder.Prompts.text(session, "Qual seu email?");
+            (session: builder.Session, args: any, next: Function) => {
+                builder.Prompts.text(session, !args || !args.invalidEmail ?
+                "Qual seu email?"
+                : "Por favor, poderia informar um e-mail válido?");
             }, (session: builder.Session, results: any, next: Function) => {
                 let email: string = results.response;
 
@@ -51,8 +53,7 @@ export class CommandDialogs implements IDialogBase {
                     session.userData.email = email;
                     next();
                 } else {
-                    session.send("Por favor, informe um e-mail válido");
-                    session.replaceDialog("/askEmail");
+                    session.replaceDialog("/askEmail", { invalidEmail: true });
                 }
             }, (session: builder.Session, results: any) => {
                 this.atualizarToken(session, results);
@@ -71,7 +72,7 @@ export class CommandDialogs implements IDialogBase {
                 } else {
                     session.endDialog("hum... %s. você perdeu! mais sorte da próxima vez. :(", flip);
                 }
-            }
+            },
         ]);
     }
 

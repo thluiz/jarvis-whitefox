@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const result_1 = require("../../support/result");
+const result_1 = require("../../domain/result");
 const loginRequestRepository_1 = require("../repositories/loginRequestRepository");
 const userRepository_1 = require("../repositories/userRepository");
 const service_1 = require("./service");
@@ -32,7 +32,7 @@ class SecurityService {
         return __awaiter(this, void 0, void 0, function* () {
             const token = service_1.UtilsService.randomString(18);
             const temporaryToken = service_1.UtilsService.randomString(30);
-            const sp = yield (new loginRequestRepository_1.LoginRequestRepository()).create(email, token, temporaryToken, JSON.stringify(responseAddress));
+            const sp = yield (new loginRequestRepository_1.LoginRequestRepository()).create(email, token, temporaryToken, responseAddress);
             if (!sp.success) {
                 return result_1.Result.Fail(sp.message);
             }

@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const result_1 = require("../../support/result");
+const result_1 = require("../../domain/result");
 const entities_1 = require("../entities");
 const sqlParameter_1 = require("../sqlParameter");
 const iteratorBaseRepository_1 = require("./iteratorBaseRepository");

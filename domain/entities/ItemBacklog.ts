@@ -1,18 +1,11 @@
 
 export class ItemBacklog {
     public static serialize(recordSet: any): ItemBacklog {
-        const data: any = recordSet[0][0];
-
-        return new ItemBacklog(data.Id, data.Name);
+        return ItemBacklog.create(recordSet.id, recordSet.name);
     }
 
     public static serializeAll(recordSet: any): ItemBacklog[] {
-        let items: any[] = [];
-        recordSet[0][0].forEach(p => {
-            items.push(ItemBacklog.create(p.id, p.name));
-        });
-
-        return items;
+        return recordSet.map(this.serialize);
     }
 
     public static create(id: number, name: string) {

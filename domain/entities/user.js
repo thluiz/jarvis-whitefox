@@ -1,12 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class User {
-    static create(id, name, projects) {
-        return new User(id, name, projects);
+    static create(id, name) {
+        return new User(id, name);
     }
     static serialize(recordset) {
-        const data = recordset[0][0];
-        return User.create(data.id, data.name, data.projects);
+        return User.create(recordset.id, recordset.name);
     }
     constructor(id, name, projects) {
         this.id = id;

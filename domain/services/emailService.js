@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const result_1 = require("../../support/result");
+const result_1 = require("../../domain/result");
 class EmailService {
     static send(email, subject, body) {
         return __awaiter(this, void 0, void 0, function* () {

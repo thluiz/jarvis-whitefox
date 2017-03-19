@@ -1,0 +1,1 @@
+{"version":3,"file":"registerActivityIntents.js","sourceRoot":"","sources":["registerActivityIntents.ts"],"names":[],"mappings":";;AACA,6CAA0C;AAE1C,6BAAqC,SAAQ,uBAAU;IAC5C,KAAK,CAAC,MAA4B;QACrC,MAAM,CAAC,OAAO,CAAC,mBAAmB,EAAE;YAChC,CAAC,OAAO,EAAE,IAAI,EAAE,IAAI;gBAChB,OAAO,CAAC,SAAS,CAAC,4EAA4E,CAAC,CAAC;YACpG,CAAC;SACJ,CAAC,CAAC;IACP,CAAC;CACJ;AARD,0DAQC"}

@@ -1,5 +1,5 @@
-import { Result } from "../../support/result";
-import { IService } from "./iservice";
+import { Result } from "../../domain/result";
+import { IService } from "./service";
 
 export class EmailService implements IService {
     public static async send(email: string, subject: string, body: string): Promise<Result<string>> {

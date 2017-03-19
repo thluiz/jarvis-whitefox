@@ -1,5 +1,5 @@
 import * as sql from "mssql";
-import { Result } from "../../support/result";
+import { Result } from "../../domain/result";
 import { ParameterType } from "../parameterType";
 import { SQLParameter } from "../sqlParameter";
 
@@ -42,13 +42,30 @@ export class BaseRepository {
             let request: sql.Request = new sql.Request(connection);
             for (let p of params) {
                 request.input(p.name,
-                this.convertParameter(p.type, p.typeLength, p.typePrecision, p.typeScale), p.value);
+                    this.convertParameter(p.type, p.typeLength, p.typePrecision, p.typeScale), p.value);
             }
 
             const recordsets = await request.execute(procedure);
 
-            if (recordsets.length > 0 && recordSetToResult) {
-                return Result.Ok<T>(recordSetToResult(recordsets[0]));
+            if (recordsets.length > 0) {
+                const principal = recordsets[0];
+
+                if (principal[0]
+                    && principal[0][0]) { // WTF!
+
+                    if (principal[0][0].success !== undefined
+                        && !principal[0][0].success) {
+                        return Result.Fail<T>(principal[0][0].message || "Ocorreu um erro não definido");
+                    }
+
+                    if (recordSetToResult) {
+                        return Result.Ok<T>(recordSetToResult(principal[0][0]));
+                    }
+                }
+
+                if (recordSetToResult) {
+                    return Result.Ok<T>(recordSetToResult(principal));
+                }
             }
 
             return Result.Ok<T>();
@@ -62,6 +79,8 @@ export class BaseRepository {
         switch (type) {
             case ParameterType.Int:
                 return sql.Int;
+            case ParameterType.Boolean:
+                return sql.Bit;
             case ParameterType.Decimal:
                 return sql.Decimal(precision, scale);
             case ParameterType.NVarChar:

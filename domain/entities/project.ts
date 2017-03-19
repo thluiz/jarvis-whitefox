@@ -1,15 +1,10 @@
 export class Project {
     public static serialize(recordSet: any): Project {
-        return new Project(recordSet.Id, recordSet.Name);
+        return Project.create(recordSet.id, recordSet.name);
     }
 
     public static serializeAll(recordSet: any): Project[] {
-        let projects: any[] = [];
-        recordSet[0][0].forEach(p => {
-            projects.push(Project.create(p.id, p.name));
-        });
-
-        return projects;
+        return recordSet.map(this.serialize);
     }
 
     public static create(id: number, name: string) {
