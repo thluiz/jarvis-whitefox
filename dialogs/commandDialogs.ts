@@ -66,7 +66,7 @@ export class CommandDialogs implements IDialogBase {
                                         { listStyle: builder.ListStyle.button });
             },
             (session, results) => {
-                const flip: string = Math.random() > 0.5 ? "Cara" : "Coroa";
+                const flip = Math.random() > 0.5 ? "Cara" : "Coroa";
                 if (flip === results.response.entity) {
                     session.endDialog("opa! saiu %s! Você venceu!", flip);
                 } else {

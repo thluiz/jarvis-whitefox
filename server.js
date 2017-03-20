@@ -20,7 +20,8 @@ bot.dialog("/", dialog);
 // in case of infinite loops...
 bot.endConversationAction("reset", "forcing dialog resetting..", { matches: /^\/endDialog/i });
 /*** DIALOGS ***/
-[new Dialogs.Commands()].forEach((d) => d.setup(bot));
+[new Dialogs.Commands(),
+    new Dialogs.RegisterActivity()].forEach((d) => d.setup(bot));
 /*** INTENTS ***/
 [new Intents.GenerateDocument(),
     new Intents.General(),

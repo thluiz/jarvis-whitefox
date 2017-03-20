@@ -9,14 +9,45 @@ const IR = new IteratorBaseRepository();
 
 export class IteratorService implements IService {
 
-    // tslint:disable-next-line:max-line-length
-    public static async SearchItemBackLog(user: Domain.User, title: string, maxItens: number): Promise<Result<List<Domain.ItemBacklog>>> {
+    public static convertComplexity2Number(complexity: string): number {
+        const half = /(0.5|meio|meia|0\ .\ 5)/;
+        const one = /(1|um|uma)/;
+        const two = /(2|dois|duas)/;
+        const three = /(3|tres|três)/;
+
+        if (half.test(complexity)) {
+            return 0.5;
+        }
+
+        if (one.test(complexity)) {
+            return 1;
+        }
+
+        if (two.test(complexity)) {
+            return 2;
+        }
+
+        if (three.test(complexity)) {
+            return 3;
+        }
+
+        return 0;
+    }
+
+    public static async ValidateTaskForNewActivity(user: Domain.User, itemBacklogId: number) {
+        return IR.executeSPNoResult("ValidateItemBacklogForNewActivity",
+            SQLParameter.Int("userId", user.id), SQLParameter.Int("itemBacklogId", itemBacklogId),
+        );
+    }
+
+    public static async SearchItemBackLog(user: Domain.User, 
+                                          title: string, maxItens: number): Promise<Result<List<Domain.Task>>> {
 
         let serialize = (recordset: any) => {
-            let ib = new List<Domain.ItemBacklog>();
+            let ib = new List<Domain.Task>();
 
             ib.totalCount = recordset.total;
-            ib.items = recordset.items.map(Domain.ItemBacklog.serialize);
+            ib.items = recordset.items.map(Domain.Task.serialize);
             return ib;
         };
 
@@ -28,14 +59,14 @@ export class IteratorService implements IService {
         );
     }
 
-    public static async createTask(user: Domain.User, itemBacklog: Domain.ItemBacklog,
-                                   title: string, complexity: number): Promise<Result<any>> {
+    public static async createActivity(user: Domain.User, taskId: number,
+                                       title: string, complexity: number): Promise<Result<any>> {
 
         return IR.executeSPNoResult("CreateTask",
             SQLParameter.Int("userId", user.id),
-            SQLParameter.Int("itemBacklogId", itemBacklog.id),
+            SQLParameter.Int("itemBacklogId", taskId),
             SQLParameter.Decimal("complexity", complexity, 3, 1),
-            SQLParameter.NVarChar("title", title, 180),
+            SQLParameter.NVarChar("title", title, 100),
         );
     }
 }

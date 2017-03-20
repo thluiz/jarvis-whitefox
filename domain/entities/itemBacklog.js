@@ -1,19 +1,19 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-class ItemBacklog {
+class Task {
     static serialize(recordSet) {
-        return ItemBacklog.create(recordSet.id, recordSet.name);
+        return Task.create(recordSet.id, recordSet.name);
     }
     static serializeAll(recordSet) {
         return recordSet.map(this.serialize);
     }
     static create(id, name) {
-        return new ItemBacklog(id, name);
+        return new Task(id, name);
     }
     constructor(id, name) {
         this.id = id;
         this.name = name;
     }
 }
-exports.ItemBacklog = ItemBacklog;
+exports.Task = Task;
 //# sourceMappingURL=itemBacklog.js.map

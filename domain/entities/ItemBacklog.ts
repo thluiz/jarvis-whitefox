@@ -1,15 +1,15 @@
 
-export class ItemBacklog {
-    public static serialize(recordSet: any): ItemBacklog {
-        return ItemBacklog.create(recordSet.id, recordSet.name);
+export class Task {
+    public static serialize(recordSet: any): Task {
+        return Task.create(recordSet.id, recordSet.name);
     }
 
-    public static serializeAll(recordSet: any): ItemBacklog[] {
+    public static serializeAll(recordSet: any): Task[] {
         return recordSet.map(this.serialize);
     }
 
     public static create(id: number, name: string) {
-        return new ItemBacklog(id, name);
+        return new Task(id, name);
     }
 
     public id: number;

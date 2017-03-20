@@ -15,7 +15,7 @@ const iteratorBaseRepository_1 = require("./iteratorBaseRepository");
 class ItembacklogRepository extends iteratorBaseRepository_1.IteratorBaseRepository {
     load(itemBacklogId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const result = yield this.executeSP("GetItemBacklogData", entities_1.ItemBacklog.serialize, sqlParameter_1.SQLParameter.Int("itemBacklogId", itemBacklogId));
+            const result = yield this.executeSP("GetItemBacklogData", entities_1.Task.serialize, sqlParameter_1.SQLParameter.Int("itemBacklogId", itemBacklogId));
             if (!result.success) {
                 return result;
             }

@@ -6,7 +6,7 @@ export class HelpIntents extends IntentBase {
         dialog.matches("help", [
             (session, args, next) => {
                 // tslint:disable-next-line:max-line-length
-                session.endDialog("Sei que você está precisando se suporte, mas ainda não fui programado para isso... sorry! Perturba o pessoal da White Fox, por favor.");
+                session.endDialog("Sei que você está precisando de suporte, mas ainda não fui programado para isso... sorry! Perturba o pessoal da White Fox, por favor.");
             },
         ]);
     }
