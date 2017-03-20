@@ -11,6 +11,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const builder = require("botbuilder");
 const constants_1 = require("../domain/constants");
 const iteratorBaseRepository_1 = require("../domain/repositories/iteratorBaseRepository");
+const service_1 = require("../domain/services/service");
 const funnyMessages_1 = require("../domain/services/templates/funnyMessages");
 const sqlParameter_1 = require("../domain/sqlParameter");
 const intentBase_1 = require("./intentBase");
@@ -22,7 +23,9 @@ class GeneralIntents extends intentBase_1.IntentBase {
             debug: /^debug/,
             flipCoin: /^jogar moeda/,
             login: /^(relogar|logar)/,
+            logout: /^(logout|sair)/,
             updateBTTracking: /^atualizar acompanhamento/,
+            updateIncidents: /^atualizar incidentes/,
         };
         this.SmallTalk = {
             greetings: /^(bom\ (dia|crep|domin|fi)|boa\ (tarde|noite)|saudaç)/,
@@ -65,8 +68,16 @@ class GeneralIntents extends intentBase_1.IntentBase {
                     session.beginDialog("/flipCoin");
                     return;
                 }
+                if (this.CommandList.updateIncidents.test(receivedCommand.entity)) {
+                    this.updateIncidents(session);
+                    return;
+                }
                 if (this.CommandList.debug.test(receivedCommand.entity)) {
                     session.endDialog(JSON.stringify(session.userData));
+                    return;
+                }
+                if (this.CommandList.logout.test(receivedCommand.entity)) {
+                    session.beginDialog("/logOut");
                     return;
                 }
                 session.endDialog(`Desculpe, ainda não posso executar o comando ${receivedCommand.entity}`);
@@ -77,6 +88,19 @@ class GeneralIntents extends intentBase_1.IntentBase {
         return __awaiter(this, void 0, void 0, function* () {
             session.userData = {};
             session.beginDialog("/profile");
+        });
+    }
+    updateIncidents(session) {
+        return __awaiter(this, void 0, void 0, function* () {
+            session.send("Esse pode ser um pouco lento, mas já estou executando... ");
+            session.sendTyping();
+            const result = yield service_1.IteratorService.updateIncidents();
+            if (!result.success) {
+                session.endDialog(`Ops! aconteceu algum erro: ${result.message || "Não definido"}`);
+            }
+            else {
+                session.endDialog(`Ok! chamados atualizados no iterator!`);
+            }
         });
     }
     updateTracking(session) {

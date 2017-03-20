@@ -37,6 +37,21 @@ class CommandDialogs {
             const msg = yield SecurityService_1.SecurityService.getWelcomeMessage(data.user);
             session.endDialog(msg.data);
         }));
+        bot.dialog("/logOut", [
+            (session, args) => {
+                builder.Prompts.choice(session, "Tem certeza? Nós estávamos indo tão bem...", "Sim|Não", { listStyle: builder.ListStyle.button });
+            },
+            (session, results) => {
+                if ("sim" === results.response.entity.toLowerCase()) {
+                    session.userData = {};
+                    // tslint:disable-next-line:max-line-length
+                    session.endDialog("Hum... tudo bem... se quiser que eu volte a falar com você, é só chamar. Os comandos [help],] ou [login] podem ajudar");
+                }
+                else {
+                    session.endDialog("Ok! seguimos no trabalho então...");
+                }
+            },
+        ]);
         bot.dialog("/askEmail", [
             (session, args, next) => {
                 builder.Prompts.text(session, !args || !args.invalidEmail ?

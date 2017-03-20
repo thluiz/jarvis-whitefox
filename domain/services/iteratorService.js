@@ -8,6 +8,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const http = require("http");
+const result_1 = require("../../domain/result");
 const Domain = require("../entities");
 const list_1 = require("../list");
 const iteratorBaseRepository_1 = require("../repositories/iteratorBaseRepository");
@@ -57,6 +59,18 @@ class IteratorService {
     static createActivity(user, taskId, title, complexity) {
         return __awaiter(this, void 0, void 0, function* () {
             return IR.executeSPNoResult("CreateTask", sqlParameter_1.SQLParameter.Int("userId", user.id), sqlParameter_1.SQLParameter.Int("itemBacklogId", taskId), sqlParameter_1.SQLParameter.Decimal("complexity", complexity, 3, 1), sqlParameter_1.SQLParameter.NVarChar("title", title, 100));
+        });
+    }
+    static updateIncidents() {
+        return __awaiter(this, void 0, void 0, function* () {
+            let options = {
+                host: process.env.IITERATORSITE_URL,
+                path: process.env.ITERATORSITE_UpdateIncidentsPath,
+            };
+            yield http.get(options).on("error", (e) => {
+                return result_1.Result.Fail(e.message);
+            });
+            return result_1.Result.Ok();
         });
     }
 }

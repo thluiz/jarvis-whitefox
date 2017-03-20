@@ -15,6 +15,14 @@ class RegisterActivityIntents extends intentBase_1.IntentBase {
     setup(dialog) {
         dialog.matches("register_activity", [
             (session, args, next) => {
+                if (!session.userData.user
+                    || !session.userData.user.id
+                    || session.userData.user.id <= 0) {
+                    // tslint:disable-next-line:max-line-length
+                    session.send("Antes de lançar tarefas preciso ter certeza de quem é você no Iterator. Depois que você logar poderemos criar tarefas para você, ok?");
+                    session.replaceDialog("/profile");
+                    return;
+                }
                 const title = builder.EntityRecognizer.findEntity(args.entities, "text");
                 const complexity = builder.EntityRecognizer.findEntity(args.entities, "complexity");
                 const taskid = builder.EntityRecognizer.findEntity(args.entities, "entityId");

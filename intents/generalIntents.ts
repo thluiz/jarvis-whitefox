@@ -1,6 +1,7 @@
 import * as builder from "botbuilder";
 import { Constants } from "../domain/constants";
 import { IteratorBaseRepository } from "../domain/repositories/iteratorBaseRepository";
+import { IteratorService } from "../domain/services/service";
 import { FunnyMessages } from "../domain/services/templates/funnyMessages";
 import { SQLParameter } from "../domain/sqlParameter";
 import { IntentBase } from "./intentBase";
@@ -13,7 +14,9 @@ export class GeneralIntents extends IntentBase {
         debug: /^debug/,
         flipCoin: /^jogar moeda/,
         login: /^(relogar|logar)/,
+        logout: /^(logout|sair)/,
         updateBTTracking: /^atualizar acompanhamento/,
+        updateIncidents: /^atualizar incidentes/,
     };
 
     private SmallTalk = {
@@ -67,8 +70,18 @@ export class GeneralIntents extends IntentBase {
                     return;
                 }
 
+                if (this.CommandList.updateIncidents.test(receivedCommand.entity)) {
+                    this.updateIncidents(session);
+                    return;
+                }
+
                 if (this.CommandList.debug.test(receivedCommand.entity)) {
                     session.endDialog(JSON.stringify(session.userData));
+                    return;
+                }
+
+                if (this.CommandList.logout.test(receivedCommand.entity)) {
+                    session.beginDialog("/logOut");
                     return;
                 }
 
@@ -80,6 +93,18 @@ export class GeneralIntents extends IntentBase {
     private async login(session: builder.Session): Promise<any> {
         session.userData = {};
         session.beginDialog("/profile");
+    }
+
+    private async updateIncidents(session: builder.Session): Promise<any> {
+        session.send("Esse pode ser um pouco lento, mas já estou executando... ");
+        session.sendTyping();
+        const result = await IteratorService.updateIncidents();
+
+        if (!result.success) {
+            session.endDialog(`Ops! aconteceu algum erro: ${result.message || "Não definido"}`);
+        } else {
+            session.endDialog(`Ok! chamados atualizados no iterator!`);
+        }
     }
 
     private async updateTracking(session: builder.Session): Promise<any> {

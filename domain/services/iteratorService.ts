@@ -1,3 +1,4 @@
+import * as http from "http";
 import { Result } from "../../domain/result";
 import * as Domain from "../entities";
 import { List } from "../list";
@@ -74,5 +75,18 @@ export class IteratorService implements IService {
             SQLParameter.Decimal("complexity", complexity, 3, 1),
             SQLParameter.NVarChar("title", title, 100),
         );
+    }
+
+    public static async updateIncidents(): Promise<Result<any>> {
+        let options = {
+            host: process.env.IITERATORSITE_URL,
+            path: process.env.ITERATORSITE_UpdateIncidentsPath,
+        };
+
+        await http.get(options).on("error", (e) => {
+            return Result.Fail(e.message);
+        });
+
+        return Result.Ok();
     }
 }
