@@ -12,11 +12,11 @@ class Task {
     }
     constructor(id, title, projectId, projectName, complexity) {
         this.id = id;
-        this.title = name;
+        this.title = title;
         this.projectId = projectId;
         this.projectName = projectName;
         this.complexity = complexity;
     }
 }
 exports.Task = Task;
-//# sourceMappingURL=itemBacklog.js.map
+//# sourceMappingURL=task.js.map

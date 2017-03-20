@@ -1,6 +1,6 @@
-
 import * as builder from "botbuilder";
 import { Activity } from "../domain/entities/activity";
+import { ItembacklogRepository } from "../domain/repositories/itemBacklogRepository";
 import { IteratorBaseRepository } from "../domain/repositories/iteratorBaseRepository";
 import { Result } from "../domain/result";
 import { IteratorService } from "../domain/services/iteratorService";
@@ -9,6 +9,7 @@ import { IDialogBase } from "./dialogBase";
 
 const IR = new IteratorBaseRepository();
 const IS = new IteratorService();
+const TR = new ItembacklogRepository();
 
 export class RegisterActivityDialogs implements IDialogBase {
     private OptionOk = "Pode confirmar!";
@@ -16,7 +17,7 @@ export class RegisterActivityDialogs implements IDialogBase {
     private OptionChangeTitle = "Alterar o título";
     private OptionChangeComplexity = "Alterar a complexidade";
     private OptionChangeTask = "Alterar a tarefa";
-    private OptionCancel = "Deixa para lá, não quero mais lançar essa tarefa.";
+    private OptionCancel = "Deixa para lá, não quero mais lançar essa atividade.";
 
     private confirmationOptions = [
         this.OptionOk,
@@ -36,8 +37,8 @@ export class RegisterActivityDialogs implements IDialogBase {
                 next();
             } else {
                 builder.Prompts.text(session, !args.retry ?
-                    "Por favor, poderia informar o título da tarefa?"
-                    : "Informe ao menos 3 caracteres para o título da tarefa: ");
+                    "Por favor, poderia informar o título da atividade?"
+                    : "Informe ao menos 3 caracteres para o título da atividade: ");
             }
         }, (session, results, next) => {
             if (results.response && results.response.length <= 3) {
@@ -61,8 +62,8 @@ export class RegisterActivityDialogs implements IDialogBase {
                 next();
             } else {
                 builder.Prompts.text(session, !args.retry ?
-                    "Por favor, poderia informar a complexidade da tarefa?"
-                    : "Não entendi, a complexidade precisa ser meio(a), 0.5, 1, 2 ou 3. Poderia informar? ");
+                    "Por favor, poderia informar a complexidade da atividade?"
+                    : "Não entendi, a complexidade precisa ser meio(a), 0.5, 1, 2 ou 3. Poderia informar?");
             }
         }, (session, results, next) => {
             if (results.response) {
@@ -120,25 +121,31 @@ export class RegisterActivityDialogs implements IDialogBase {
         },
         ]);
 
-        bot.dialog("/confirmActivityCreation", [(session, args, next) => {
+        bot.dialog("/confirmActivityCreation", [ async (session, args, next) => {
             if (args.activity) {
                 session.dialogData.activity = args.activity;
             }
 
-            const activity = <Activity>session.dialogData.activity;
+            const activity = <Activity> session.dialogData.activity;
             // tslint:disable-next-line:max-line-length
             let msg =  "Hum, deixe-me ver... Já tenho o que preciso para cadastrar sua atividade, apenas confirme os dados: \n\n";
             let options = this.confirmationOptions;
 
             if (args.errorOnSave) {
-                msg = `Ocorreu o seguinte erro ao criar a tarefa "${args.errorOnSave}" \n\n`;
+                msg = `Ocorreu o seguinte erro ao criar a atividade "${args.errorOnSave}" \n\n`;
                 options[0] = this.OptionTryAgain;
+            }
+
+            const resultTask = await TR.load(activity.taskId);
+
+            if (resultTask.success) {
+                activity.taskName = resultTask.data.title;
             }
 
             session.send(msg +
                 `Título: ${activity.title}; \n\n` +
                 `Complexidades: ${activity.complexity}; \n\n` +
-                `Tarefa: ${activity.taskId}.`);
+                `Tarefa: ${activity.taskId} - ${activity.taskName}.`);
 
             builder.Prompts.choice(session, "Escolha uma opção: ", options,
                 { listStyle: builder.ListStyle.list });

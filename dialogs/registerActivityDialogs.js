@@ -9,10 +9,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const builder = require("botbuilder");
+const itemBacklogRepository_1 = require("../domain/repositories/itemBacklogRepository");
 const iteratorBaseRepository_1 = require("../domain/repositories/iteratorBaseRepository");
 const iteratorService_1 = require("../domain/services/iteratorService");
 const IR = new iteratorBaseRepository_1.IteratorBaseRepository();
 const IS = new iteratorService_1.IteratorService();
+const TR = new itemBacklogRepository_1.ItembacklogRepository();
 class RegisterActivityDialogs {
     constructor() {
         this.OptionOk = "Pode confirmar!";
@@ -20,7 +22,7 @@ class RegisterActivityDialogs {
         this.OptionChangeTitle = "Alterar o título";
         this.OptionChangeComplexity = "Alterar a complexidade";
         this.OptionChangeTask = "Alterar a tarefa";
-        this.OptionCancel = "Deixa para lá, não quero mais lançar essa tarefa.";
+        this.OptionCancel = "Deixa para lá, não quero mais lançar essa atividade.";
         this.confirmationOptions = [
             this.OptionOk,
             this.OptionChangeTitle,
@@ -39,8 +41,8 @@ class RegisterActivityDialogs {
                 }
                 else {
                     builder.Prompts.text(session, !args.retry ?
-                        "Por favor, poderia informar o título da tarefa?"
-                        : "Informe ao menos 3 caracteres para o título da tarefa: ");
+                        "Por favor, poderia informar o título da atividade?"
+                        : "Informe ao menos 3 caracteres para o título da atividade: ");
                 }
             }, (session, results, next) => {
                 if (results.response && results.response.length <= 3) {
@@ -60,8 +62,8 @@ class RegisterActivityDialogs {
                 }
                 else {
                     builder.Prompts.text(session, !args.retry ?
-                        "Por favor, poderia informar a complexidade da tarefa?"
-                        : "Não entendi, a complexidade precisa ser meio(a), 0.5, 1, 2 ou 3. Poderia informar? ");
+                        "Por favor, poderia informar a complexidade da atividade?"
+                        : "Não entendi, a complexidade precisa ser meio(a), 0.5, 1, 2 ou 3. Poderia informar?");
                 }
             }, (session, results, next) => {
                 if (results.response) {
@@ -110,7 +112,7 @@ class RegisterActivityDialogs {
                 }
             }),
         ]);
-        bot.dialog("/confirmActivityCreation", [(session, args, next) => {
+        bot.dialog("/confirmActivityCreation", [(session, args, next) => __awaiter(this, void 0, void 0, function* () {
                 if (args.activity) {
                     session.dialogData.activity = args.activity;
                 }
@@ -119,15 +121,19 @@ class RegisterActivityDialogs {
                 let msg = "Hum, deixe-me ver... Já tenho o que preciso para cadastrar sua atividade, apenas confirme os dados: \n\n";
                 let options = this.confirmationOptions;
                 if (args.errorOnSave) {
-                    msg = `Ocorreu o seguinte erro ao criar a tarefa "${args.errorOnSave}" \n\n`;
+                    msg = `Ocorreu o seguinte erro ao criar a atividade "${args.errorOnSave}" \n\n`;
                     options[0] = this.OptionTryAgain;
+                }
+                const resultTask = yield TR.load(activity.taskId);
+                if (resultTask.success) {
+                    activity.taskName = resultTask.data.title;
                 }
                 session.send(msg +
                     `Título: ${activity.title}; \n\n` +
                     `Complexidades: ${activity.complexity}; \n\n` +
-                    `Tarefa: ${activity.taskId}.`);
+                    `Tarefa: ${activity.taskId} - ${activity.taskName}.`);
                 builder.Prompts.choice(session, "Escolha uma opção: ", options, { listStyle: builder.ListStyle.list });
-            }, (session, results, next) => {
+            }), (session, results, next) => {
                 if (results.response.entity === this.OptionOk
                     || results.response.entity === this.OptionTryAgain) {
                     session.dialogData.activity.changed = false;

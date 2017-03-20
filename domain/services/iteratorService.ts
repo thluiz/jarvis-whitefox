@@ -34,6 +34,12 @@ export class IteratorService implements IService {
         return 0;
     }
 
+    public static async ValidateProjectForNewTask(user: Domain.User, projectId: number) {
+        return IR.executeSPNoResult("ValidateProjectForNewItemBacklog",
+            SQLParameter.Int("userId", user.id), SQLParameter.Int("projectId", projectId),
+        );
+    }
+
     public static async ValidateTaskForNewActivity(user: Domain.User, itemBacklogId: number) {
         return IR.executeSPNoResult("ValidateItemBacklogForNewActivity",
             SQLParameter.Int("userId", user.id), SQLParameter.Int("itemBacklogId", itemBacklogId),

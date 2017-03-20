@@ -33,6 +33,11 @@ class IteratorService {
         }
         return 0;
     }
+    static ValidateProjectForNewTask(user, projectId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return IR.executeSPNoResult("ValidateProjectForNewItemBacklog", sqlParameter_1.SQLParameter.Int("userId", user.id), sqlParameter_1.SQLParameter.Int("projectId", projectId));
+        });
+    }
     static ValidateTaskForNewActivity(user, itemBacklogId) {
         return __awaiter(this, void 0, void 0, function* () {
             return IR.executeSPNoResult("ValidateItemBacklogForNewActivity", sqlParameter_1.SQLParameter.Int("userId", user.id), sqlParameter_1.SQLParameter.Int("itemBacklogId", itemBacklogId));

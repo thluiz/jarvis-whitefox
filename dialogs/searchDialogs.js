@@ -33,8 +33,8 @@ class SaearchDialogs {
                         session.send(`Aqui vão os ${maxItens} mais recentes:`);
                     }
                     let list = "";
-                    data.items.forEach(el => {
-                        list += (`  ${el.id} - ${el.name} \n\n`);
+                    data.items.forEach((el) => {
+                        list += (`  ${el.id} - ${el.title} \n\n`);
                     });
                     session.send(list);
                     session.endDialog();

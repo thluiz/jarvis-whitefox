@@ -29,8 +29,8 @@ export class SaearchDialogs implements IDialogBase {
                         session.send(`Aqui vão os ${maxItens} mais recentes:`);
                     }
                     let list: string = "";
-                    data.items.forEach(el => {
-                        list += (`  ${el.id} - ${el.name} \n\n`);
+                    data.items.forEach((el) => {
+                        list += (`  ${el.id} - ${el.title} \n\n`);
                     });
 
                     session.send(list);
