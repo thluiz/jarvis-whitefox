@@ -64,13 +64,24 @@ class IteratorService {
     static updateIncidents() {
         return __awaiter(this, void 0, void 0, function* () {
             let options = {
-                host: process.env.IITERATORSITE_URL,
+                host: process.env.ITERATORSITE_URL,
                 path: process.env.ITERATORSITE_UpdateIncidentsPath,
             };
-            yield http.get(options).on("error", (e) => {
-                return result_1.Result.Fail(e.message);
+            const result = yield new Promise((resolve) => {
+                http.get(options, (res) => {
+                    if (res.statusCode === 200) {
+                        resolve(result_1.Result.Ok());
+                    }
+                    else {
+                        resolve(result_1.Result.Fail(`Error: ${res.statusCode}`));
+                    }
+                }).on("error", (err) => {
+                    if (err) {
+                        resolve(result_1.Result.Fail(err.message));
+                    }
+                });
             });
-            return result_1.Result.Ok();
+            return result;
         });
     }
 }

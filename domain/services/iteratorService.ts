@@ -47,8 +47,8 @@ export class IteratorService implements IService {
         );
     }
 
-    public static async SearchItemBackLog(user: Domain.User, 
-                                          title: string, maxItens: number): Promise<Result<List<Domain.Task>>> {
+    public static async SearchItemBackLog(user: Domain.User,
+        title: string, maxItens: number): Promise<Result<List<Domain.Task>>> {
 
         let serialize = (recordset: any) => {
             let ib = new List<Domain.Task>();
@@ -79,14 +79,24 @@ export class IteratorService implements IService {
 
     public static async updateIncidents(): Promise<Result<any>> {
         let options = {
-            host: process.env.IITERATORSITE_URL,
+            host: process.env.ITERATORSITE_URL,
             path: process.env.ITERATORSITE_UpdateIncidentsPath,
         };
 
-        await http.get(options).on("error", (e) => {
-            return Result.Fail(e.message);
+        const result = await new Promise<Result<any>>((resolve) => {
+            http.get(options, (res) => {
+                if (res.statusCode === 200) {
+                    resolve(Result.Ok());
+                } else {
+                    resolve(Result.Fail(`Error: ${res.statusCode}`));
+                }
+            }).on("error", (err) => {
+                if (err) {
+                    resolve(Result.Fail(err.message));
+                }
+            });
         });
 
-        return Result.Ok();
+        return result;
     }
 }

@@ -45,7 +45,7 @@ class CommandDialogs {
                 if ("sim" === results.response.entity.toLowerCase()) {
                     session.userData = {};
                     // tslint:disable-next-line:max-line-length
-                    session.endDialog("Hum... tudo bem... se quiser que eu volte a falar com você, é só chamar. Os comandos [help],] ou [login] podem ajudar");
+                    session.endDialog("Hum... tudo bem... se quiser que eu volte a falar com você, é só chamar. Os comandos [help] ou [login] podem ajudar");
                 }
                 else {
                     session.endDialog("Ok! seguimos no trabalho então...");
@@ -53,7 +53,7 @@ class CommandDialogs {
             },
         ]);
         bot.dialog("/askEmail", [
-            (session, args, next) => {
+            (session, args) => {
                 builder.Prompts.text(session, !args || !args.invalidEmail ?
                     "Qual seu email?"
                     : "Por favor, poderia informar um e-mail válido?");
