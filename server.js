@@ -18,7 +18,7 @@ const recognizer = new builder.LuisRecognizer(process.env.LUIS_ENDPOINT);
 const dialog = new builder.IntentDialog({ recognizers: [recognizer] });
 bot.dialog("/", dialog);
 // in case of infinite loops...
-bot.endConversationAction("reset", "forcing dialog resetting..", { matches: /^\/endDialog/i });
+bot.endConversationAction("reset", "forcing dialog resetting..", { matches: /^endDialog/i });
 /*** DIALOGS ***/
 [new Dialogs.Commands(),
     new Dialogs.RegisterActivity()].forEach((d) => d.setup(bot));

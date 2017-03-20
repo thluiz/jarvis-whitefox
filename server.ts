@@ -20,7 +20,7 @@ const dialog: builder.IntentDialog = new builder.IntentDialog({ recognizers: [re
 bot.dialog("/", dialog);
 
 // in case of infinite loops...
-bot.endConversationAction("reset", "forcing dialog resetting..", { matches: /^\/endDialog/i });
+bot.endConversationAction("reset", "forcing dialog resetting..", { matches: /^endDialog/i });
 
 /*** DIALOGS ***/
 [new Dialogs.Commands(),

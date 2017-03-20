@@ -69,7 +69,7 @@ class RegisterActivityIntents extends intentBase_1.IntentBase {
                     session.beginDialog("/confirmActivityCreation", { activity: session.dialogData.activity, errorOnSave: result.message });
                     return;
                 }
-                session.endDialog("Tarefa cadastrada com sucesso!");
+                session.endDialog("Atividade cadastrada com sucesso!");
             }),
         ]);
     }

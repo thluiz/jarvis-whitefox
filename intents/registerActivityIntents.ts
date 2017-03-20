@@ -74,7 +74,7 @@ export class RegisterActivityIntents extends IntentBase {
                     return;
                 }
 
-                session.endDialog("Tarefa cadastrada com sucesso!");
+                session.endDialog("Atividade cadastrada com sucesso!");
             },
         ]);
     }
