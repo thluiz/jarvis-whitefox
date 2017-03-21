@@ -7,7 +7,7 @@ export class QueryIntents extends IntentBase {
     private Locations = {
         activity: /^(atividade|lançamento)/,
         all: /^(tudo|todo|toda)/,
-        backlog: /^(backlog|no\ backlog)/,
+        backlog: /^(backlog|(n|d)o\ backlog|(tarefas|itens)\ (d|n)o\ backlog)/,
         closedIncident: /^(chamados\ fechado|chamado\ fechado)/,
         // tslint:disable-next-line:max-line-length
         closedTasks: /^(tarefas\ fechada|tarefa\ fechada|tarefas\ concluída|tarefas\ concluida|tarefa\ concluída|tarefa\ concluida)/,

@@ -8,9 +8,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const utilsService_1 = require("../domain/services/utilsService");
 const builder = require("botbuilder");
 const service_1 = require("../domain/services/service");
+const utilsService_1 = require("../domain/services/utilsService");
 const intentBase_1 = require("./intentBase");
 class QueryIntents extends intentBase_1.IntentBase {
     constructor() {
@@ -18,9 +18,9 @@ class QueryIntents extends intentBase_1.IntentBase {
         this.Locations = {
             activity: /^(atividade|lançamento)/,
             all: /^(tudo|todo|toda)/,
-            backlog: /^(backlog)/,
-            // tslint:disable-next-line:max-line-length
+            backlog: /^(backlog|(n|d)o\ backlog|(tarefas|itens)\ (d|n)o\ backlog)/,
             closedIncident: /^(chamados\ fechado|chamado\ fechado)/,
+            // tslint:disable-next-line:max-line-length
             closedTasks: /^(tarefas\ fechada|tarefa\ fechada|tarefas\ concluída|tarefas\ concluida|tarefa\ concluída|tarefa\ concluida)/,
             monitoring: /^(acompanhamento|andamento)/,
             openIncident: /^(chamado|chamados\ aberto|incidente|chamado\ aberto)/,
