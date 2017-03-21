@@ -93,7 +93,7 @@ class QueryIntents extends intentBase_1.IntentBase {
         let r = restrictions.filter((e) => {
             return this.Restrictions.projects.test(e.entity);
         }).map((e) => {
-            if (/^p\ \+|p\+/.test(e)) {
+            if (/^p\ \+|p\+/.test(e.entity)) {
                 return "p+ (sites e apis)";
             }
             else {
