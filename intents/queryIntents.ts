@@ -6,14 +6,13 @@ import { IntentBase } from "./intentBase";
 export class QueryIntents extends IntentBase {
     private Locations = {
         activity: /^(atividade|lançamento)/,
-        all: /^(tudo|todo|toda)/,
-        backlog: /^(backlog|(n|d)o\ backlog|(tarefas|itens)\ (d|n)o\ backlog)/,
-        closedIncident: /^(chamados\ fechado|chamado\ fechado)/,
-        // tslint:disable-next-line:max-line-length
-        closedTasks: /^(tarefas\ fechada|tarefa\ fechada|tarefas\ concluída|tarefas\ concluida|tarefa\ concluída|tarefa\ concluida)/,
+        all: /^(tudo|tod(o|a))/,
+        backlog: /^(backlog|(n|d)o\ backlog|(tarefa(s)?|ite(ns|m))\ (d|n)o\ backlog)/,
+        closedIncident: /^((chamado(s)?)\ fechado)/,
+        closedTasks: /^(tarefa(s)?(\ fechada| conclu(í|i)da))/,
         monitoring: /^(acompanhamento|andamento)/,
-        openIncident: /^(chamado|chamados\ aberto|incidente|chamado\ aberto)/,
-        openTasks: /^(tarefas|tarefas\ aberta)/,
+        openIncident: /^((chamado(s)?(\ aberto)?)|incidente)/,
+        openTasks: /^(tarefa(s)?(\ aberta)?)/,
     };
 
     private Restrictions = {
@@ -120,24 +119,28 @@ export class QueryIntents extends IntentBase {
             return list;
         }
 
-        if (this.has_at_least_one(this.Locations.openTasks, locations)) {
-            list.push("openTask");
-        }
-
         if (this.has_at_least_one(this.Locations.closedTasks, locations)) {
+            locations = this.remove_all(this.Locations.closedTasks, locations);
             list.push("closedTask");
         }
 
         if (this.has_at_least_one(this.Locations.backlog, locations)) {
+            locations = this.remove_all(this.Locations.backlog, locations);
             list.push("backlog");
         }
 
-        if (this.has_at_least_one(this.Locations.openIncident, locations)) {
-            list.push("openincident");
+        if (this.has_at_least_one(this.Locations.openTasks, locations)) {
+            locations = this.remove_all(this.Locations.openTasks, locations);
+            list.push("openTask");
         }
 
         if (this.has_at_least_one(this.Locations.closedIncident, locations)) {
             list.push("closedincident");
+        }
+
+        if (this.has_at_least_one(this.Locations.openIncident, locations)) {
+            locations = this.remove_all(this.Locations.openIncident, locations);
+            list.push("openincident");
         }
 
         if (this.has_at_least_one(this.Locations.activity, locations)) {
