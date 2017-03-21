@@ -1,15 +1,15 @@
-import { UtilsService } from '../domain/services/utilsService';
 import * as builder from "botbuilder";
 import { IteratorService } from "../domain/services/service";
+import { UtilsService } from "../domain/services/utilsService";
 import { IntentBase } from "./intentBase";
 
 export class QueryIntents extends IntentBase {
     private Locations = {
         activity: /^(atividade|lançamento)/,
         all: /^(tudo|todo|toda)/,
-        backlog: /^(backlog)/,
-        // tslint:disable-next-line:max-line-length
+        backlog: /^(backlog|no\ backlog)/,
         closedIncident: /^(chamados\ fechado|chamado\ fechado)/,
+        // tslint:disable-next-line:max-line-length
         closedTasks: /^(tarefas\ fechada|tarefa\ fechada|tarefas\ concluída|tarefas\ concluida|tarefa\ concluída|tarefa\ concluida)/,
         monitoring: /^(acompanhamento|andamento)/,
         openIncident: /^(chamado|chamados\ aberto|incidente|chamado\ aberto)/,
