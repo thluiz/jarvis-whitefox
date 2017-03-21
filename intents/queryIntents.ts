@@ -1,3 +1,4 @@
+import { UtilsService } from '../domain/services/utilsService';
 import * as builder from "botbuilder";
 import { IteratorService } from "../domain/services/service";
 import { IntentBase } from "./intentBase";
@@ -26,7 +27,7 @@ export class QueryIntents extends IntentBase {
             async (session, args, next) => {
 
                 // tslint:disable-next-line:max-line-length
-                if (!this.checkUserLogedIn(session, "Para realizar as consultas, preciso saber quem é você. \n\n Depois que você logar poderemos fazer as consultas, ok?")) {
+                if (!this.checkUserLogedIn(session, "Para realizar as consultas, preciso saber quem é você, ok? ")) {
                     return;
                 }
 
@@ -62,16 +63,17 @@ export class QueryIntents extends IntentBase {
                     return;
                 }
 
-                let msg = "Os seguintes resultados foram encontrados: \n\n";
-
+                let total = 0;
+                let response = "";
                 for (let d of results.data) {
-                    msg += this.getLocationTitle(d.type) + ": \n\n";
+                    response += this.getLocationTitle(d.type) + ": \n\n";
                     for (let i of d.items) {
-                        msg += ` * ${i.id} - ${i.name} \n\n`;
+                        response += ` * ${i.id} - ${i.name} \n\n`;
+                        total++;
                     }
                 }
 
-                session.send(msg);
+                session.send(this.get_response_text(total) + response);
             },
         ]);
     }
@@ -172,5 +174,38 @@ export class QueryIntents extends IntentBase {
         }
 
         return false;
+    }
+
+    private get_response_text(total: number): string {
+        let formal = ["Encontrei os seguintes registros:",
+        "Foram encontrados esses itens: "];
+
+        let funny = this.get_response_list(total);
+
+        return UtilsService.getRandomItemFromArray<string>(formal.concat(formal, funny)) + "\n\n";
+    }
+
+    private get_response_list(total: number): string[] {
+        if (total > 30) {
+            return [
+                "Ufa! o dia inteiro para listar tudo isso...",
+                "Achei que não ia terminhar nunca, mas aí vai...",
+                "Que trabalheira que você me deu...",
+            ];
+        }
+
+        if (total > 15) {
+            return [
+                "Deu para aquecer com essa lista, manda mais! segue o que vc pediu:",
+                "Íííssaaa! saúde é o que interessa! e não tem lista como essa (foi boa, não?): ",
+                "1, 2, 3, 4 - listar itens é um barato! segue o que você pediu: ",
+            ];
+        }
+
+        return [
+            "Moleza! segue aí: ",
+            "Nem deu para suar, olha os registros:",
+            "1, 2, 3, 4 - listar itens é um barato! 4, 3, 2, 1... segue o que você pediu! hum não rimou, mas segue: ",
+        ];
     }
 }

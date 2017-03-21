@@ -59,10 +59,6 @@ export class FunnyMessages {
         return this.getRandomString(messages);
     }
 
-    private static getRandomString(messages: string[]): string {
-        return messages[Math.floor(Math.random() * messages.length)];
-    }
-
     private static keyValueMessages(): string[] {
         return [
             "Segue um %s saindo do forno: %s!",
@@ -96,4 +92,7 @@ export class FunnyMessages {
         ];
     }
 
+    private static getRandomString(messages: string[]): string {
+        return messages[Math.floor(Math.random() * messages.length)];
+    }
 }

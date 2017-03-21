@@ -79,6 +79,9 @@ class UtilsService {
     static funnyResultMessage(objectName, result) {
         return sprintf_js_1.sprintf(funnyMessages_1.FunnyMessages.randomKeyValueMessage(), objectName, result);
     }
+    static getRandomItemFromArray(items) {
+        return items[Math.floor(Math.random() * items.length)];
+    }
 }
 exports.UtilsService = UtilsService;
 //# sourceMappingURL=utilsService.js.map

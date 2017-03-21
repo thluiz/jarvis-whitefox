@@ -8,6 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const utilsService_1 = require("../domain/services/utilsService");
 const builder = require("botbuilder");
 const service_1 = require("../domain/services/service");
 const intentBase_1 = require("./intentBase");
@@ -35,7 +36,7 @@ class QueryIntents extends intentBase_1.IntentBase {
         dialog.matches("query", [
             (session, args, next) => __awaiter(this, void 0, void 0, function* () {
                 // tslint:disable-next-line:max-line-length
-                if (!this.checkUserLogedIn(session, "Para realizar as consultas, preciso saber quem é você. \n\n Depois que você logar poderemos fazer as consultas, ok?")) {
+                if (!this.checkUserLogedIn(session, "Para realizar as consultas, preciso saber quem é você, ok? ")) {
                     return;
                 }
                 const locations = builder.EntityRecognizer.findAllEntities(args.entities, "location");
@@ -60,14 +61,16 @@ class QueryIntents extends intentBase_1.IntentBase {
                     session.send("Nenhum registro encontrado!");
                     return;
                 }
-                let msg = "Os seguintes resultados foram encontrados: \n\n";
+                let total = 0;
+                let response = "";
                 for (let d of results.data) {
-                    msg += this.getLocationTitle(d.type) + ": \n\n";
+                    response += this.getLocationTitle(d.type) + ": \n\n";
                     for (let i of d.items) {
-                        msg += ` * ${i.id} - ${i.name} \n\n`;
+                        response += ` * ${i.id} - ${i.name} \n\n`;
+                        total++;
                     }
                 }
-                session.send(msg);
+                session.send(this.get_response_text(total) + response);
             }),
         ]);
     }
@@ -150,6 +153,33 @@ class QueryIntents extends intentBase_1.IntentBase {
             }
         }
         return false;
+    }
+    get_response_text(total) {
+        let formal = ["Encontrei os seguintes registros:",
+            "Foram encontrados esses itens: "];
+        let funny = this.get_response_list(total);
+        return utilsService_1.UtilsService.getRandomItemFromArray(formal.concat(formal, funny)) + "\n\n";
+    }
+    get_response_list(total) {
+        if (total > 30) {
+            return [
+                "Ufa! o dia inteiro para listar tudo isso...",
+                "Achei que não ia terminhar nunca, mas aí vai...",
+                "Que trabalheira que você me deu...",
+            ];
+        }
+        if (total > 15) {
+            return [
+                "Deu para aquecer com essa lista, manda mais! segue o que vc pediu:",
+                "Íííssaaa! saúde é o que interessa! e não tem lista como essa (foi boa, não?): ",
+                "1, 2, 3, 4 - listar itens é um barato! segue o que você pediu: ",
+            ];
+        }
+        return [
+            "Moleza! segue aí: ",
+            "Nem deu para suar, olha os registros:",
+            "1, 2, 3, 4 - listar itens é um barato! 4, 3, 2, 1... segue o que você pediu! hum não rimou, mas segue: ",
+        ];
     }
 }
 exports.QueryIntents = QueryIntents;

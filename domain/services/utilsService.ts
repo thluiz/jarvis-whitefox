@@ -88,4 +88,8 @@ export class UtilsService implements IService {
     public static funnyResultMessage(objectName: string, result: string): string {
         return sprintf(FunnyMessages.randomKeyValueMessage(), objectName, result);
     }
+
+    public static getRandomItemFromArray<T>(items: T[]): T {
+        return items[Math.floor(Math.random() * items.length)];
+    }
 }

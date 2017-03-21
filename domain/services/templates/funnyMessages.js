@@ -52,9 +52,6 @@ class FunnyMessages {
         ];
         return this.getRandomString(messages);
     }
-    static getRandomString(messages) {
-        return messages[Math.floor(Math.random() * messages.length)];
-    }
     static keyValueMessages() {
         return [
             "Segue um %s saindo do forno: %s!",
@@ -84,6 +81,9 @@ class FunnyMessages {
             "Qual o sentido de gerar %s o dia todo? %s",
             "E agora, José? A festa acabou, a luz apagou, o povo sumiu... mas o %s saiu: %s!",
         ];
+    }
+    static getRandomString(messages) {
+        return messages[Math.floor(Math.random() * messages.length)];
     }
 }
 exports.FunnyMessages = FunnyMessages;
