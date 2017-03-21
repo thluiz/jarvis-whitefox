@@ -21,11 +21,11 @@ class GeneralIntents extends intentBase_1.IntentBase {
         super(...arguments);
         this.CommandList = {
             debug: /^debug/,
-            flipCoin: /^jogar moeda/,
+            flipCoin: /^(jogar\ moeda|joga\ moeda)/,
             login: /^(relogar|logar)/,
             logout: /^(logout|sair)/,
             updateBTTracking: /^atualizar acompanhamento/,
-            updateIncidents: /^atualizar incidentes/,
+            updateIncidents: /^(atualizar\ incidentes|atualizar\ chamados)/,
         };
         this.SmallTalk = {
             greetings: /^(bom\ (dia|crep|domin|fi)|boa\ (tarde|noite)|saudaç)/,

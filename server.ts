@@ -31,7 +31,7 @@ new Dialogs.RegisterActivity()].forEach((d) => d.setup(bot));
 new Intents.General(),
 new Intents.RegisterActivity(),
 new Intents.RegisterTask(),
-new Intents.Search(),
+new Intents.Query(),
 new Intents.Help()].forEach((intent) => intent.setup(dialog));
 
 /*** API ***/

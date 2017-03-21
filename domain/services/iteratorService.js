@@ -10,8 +10,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const http = require("http");
 const result_1 = require("../../domain/result");
-const Domain = require("../entities");
-const list_1 = require("../list");
 const iteratorBaseRepository_1 = require("../repositories/iteratorBaseRepository");
 const sqlParameter_1 = require("../sqlParameter");
 const IR = new iteratorBaseRepository_1.IteratorBaseRepository();
@@ -45,15 +43,9 @@ class IteratorService {
             return IR.executeSPNoResult("ValidateItemBacklogForNewActivity", sqlParameter_1.SQLParameter.Int("userId", user.id), sqlParameter_1.SQLParameter.Int("itemBacklogId", itemBacklogId));
         });
     }
-    static SearchItemBackLog(user, title, maxItens) {
+    static Search(user, onlyOwn, projects, billingCenters, locations, text, maxItens = 30) {
         return __awaiter(this, void 0, void 0, function* () {
-            let serialize = (recordset) => {
-                let ib = new list_1.List();
-                ib.totalCount = recordset.total;
-                ib.items = recordset.items.map(Domain.Task.serialize);
-                return ib;
-            };
-            return IR.executeSP("SearchItemBacklog", serialize, sqlParameter_1.SQLParameter.Int("userId", user.id), sqlParameter_1.SQLParameter.Int("maxItens", maxItens), sqlParameter_1.SQLParameter.NVarChar("title", title, 180));
+            return IR.executeSP("Search", (r) => { return r.results; }, sqlParameter_1.SQLParameter.Int("userId", user.id), sqlParameter_1.SQLParameter.Int("maxItems", maxItens), sqlParameter_1.SQLParameter.NVarCharMax("locations", locations.join(",")), sqlParameter_1.SQLParameter.NVarCharMax("billingCenters", billingCenters.join(",")), sqlParameter_1.SQLParameter.NVarCharMax("projects", projects.join(",")), sqlParameter_1.SQLParameter.NVarChar("text", text, 180));
         });
     }
     static createActivity(user, taskId, title, complexity) {

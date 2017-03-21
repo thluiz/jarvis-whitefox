@@ -12,11 +12,11 @@ export class GeneralIntents extends IntentBase {
 
     private CommandList = {
         debug: /^debug/,
-        flipCoin: /^jogar moeda/,
+        flipCoin: /^(jogar\ moeda|joga\ moeda)/,
         login: /^(relogar|logar)/,
         logout: /^(logout|sair)/,
         updateBTTracking: /^atualizar acompanhamento/,
-        updateIncidents: /^atualizar incidentes/,
+        updateIncidents: /^(atualizar\ incidentes|atualizar\ chamados)/,
     };
 
     private SmallTalk = {

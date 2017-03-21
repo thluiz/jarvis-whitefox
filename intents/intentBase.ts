@@ -14,6 +14,19 @@ export class IntentBase implements IIntentBase {
         throw "Not implemented!";
     }
 
+    protected checkUserLogedIn(session: Session, message: string): boolean {
+        if (!session.userData.user
+            || !session.userData.user.id
+            || session.userData.user.id <= 0) {
+            // tslint:disable-next-line:max-line-length
+            session.send(message);
+            session.replaceDialog("/profile");
+            return false;
+        }
+
+        return true;
+    }
+
     protected saveUserError(session: Session, error: IUserError) {
         let errors = this.expirateOldErrors(session.userData.errors || []);
         errors.push(error);

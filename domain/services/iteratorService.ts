@@ -47,22 +47,19 @@ export class IteratorService implements IService {
         );
     }
 
-    public static async SearchItemBackLog(user: Domain.User,
-        title: string, maxItens: number): Promise<Result<List<Domain.Task>>> {
+    public static async Search(user: Domain.User, onlyOwn: boolean,
+                               projects: string[], billingCenters: string[],
+                               locations: string[], text: string,
+                               maxItens: number = 30): Promise<Result<any[]>> {
 
-        let serialize = (recordset: any) => {
-            let ib = new List<Domain.Task>();
-
-            ib.totalCount = recordset.total;
-            ib.items = recordset.items.map(Domain.Task.serialize);
-            return ib;
-        };
-
-        return IR.executeSP("SearchItemBacklog",
-            serialize,
+        return IR.executeSP("Search",
+            (r) => { return r.results; },
             SQLParameter.Int("userId", user.id),
-            SQLParameter.Int("maxItens", maxItens),
-            SQLParameter.NVarChar("title", title, 180),
+            SQLParameter.Int("maxItems", maxItens),
+            SQLParameter.NVarCharMax("locations", locations.join(",")),
+            SQLParameter.NVarCharMax("billingCenters", billingCenters.join(",")),
+            SQLParameter.NVarCharMax("projects", projects.join(",")),
+            SQLParameter.NVarChar("text", text, 180),
         );
     }
 

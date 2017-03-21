@@ -4,6 +4,17 @@ class IntentBase {
     setup(dialog) {
         throw "Not implemented!";
     }
+    checkUserLogedIn(session, message) {
+        if (!session.userData.user
+            || !session.userData.user.id
+            || session.userData.user.id <= 0) {
+            // tslint:disable-next-line:max-line-length
+            session.send(message);
+            session.replaceDialog("/profile");
+            return false;
+        }
+        return true;
+    }
     saveUserError(session, error) {
         let errors = this.expirateOldErrors(session.userData.errors || []);
         errors.push(error);

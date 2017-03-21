@@ -27,7 +27,7 @@ bot.endConversationAction("reset", "forcing dialog resetting..", { matches: /^en
     new Intents.General(),
     new Intents.RegisterActivity(),
     new Intents.RegisterTask(),
-    new Intents.Search(),
+    new Intents.Query(),
     new Intents.Help()].forEach((intent) => intent.setup(dialog));
 /*** API ***/
 webAPI_1.WebAPI.setup(server, connector, bot);
