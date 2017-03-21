@@ -11,7 +11,7 @@ const IR = new IteratorBaseRepository();
 export class IteratorService implements IService {
 
     public static convertComplexity2Number(complexity: string): number {
-        const half = /(0.5|meio|meia|0\ .\ 5)/;
+        const half = /(0.5|meio|meia|0\ .\ 5|0\,5|0\ \,\ 5)/;
         const one = /(1|um|uma)/;
         const two = /(2|dois|duas)/;
         const three = /(3|tres|três)/;

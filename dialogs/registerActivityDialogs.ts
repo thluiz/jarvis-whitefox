@@ -63,7 +63,7 @@ export class RegisterActivityDialogs implements IDialogBase {
             } else {
                 builder.Prompts.text(session, !args.retry ?
                     "Por favor, poderia informar a complexidade da atividade?"
-                    : "Não entendi, a complexidade precisa ser meio(a), 0.5, 1, 2 ou 3. Poderia informar?");
+                    : "Não entendi, a complexidade precisa ser meio(a), 0,5, 0.5, 1, 2 ou 3. Poderia informar?");
             }
         }, (session, results, next) => {
             if (results.response) {
