@@ -17,6 +17,7 @@ class QueryIntents extends intentBase_1.IntentBase {
         super(...arguments);
         this.Locations = {
             activity: /^(atividade|lançamento)/,
+            all: /^(tudo|todo|toda)/,
             backlog: /^(backlog)/,
             // tslint:disable-next-line:max-line-length
             closedIncident: /^(chamados\ fechado|chamado\ fechado)/,
@@ -85,9 +86,9 @@ class QueryIntents extends intentBase_1.IntentBase {
             case "backlog":
                 return "Backlog";
             case "openIncident":
-                return "Chamados Abertos:";
+                return "Chamados Abertos";
             case "closedIncident":
-                return "Chamados Fechados:";
+                return "Chamados Fechados";
             default:
                 return "";
         }
@@ -107,6 +108,10 @@ class QueryIntents extends intentBase_1.IntentBase {
     }
     setup_locations(locations) {
         let list = [];
+        if (this.has_at_least_one(this.Locations.all, locations)) {
+            list.push("openTask", "closedTask", "backlog", "openincident", "closedincident");
+            return list;
+        }
         if (this.has_at_least_one(this.Locations.openTasks, locations)) {
             list.push("openTask");
         }
