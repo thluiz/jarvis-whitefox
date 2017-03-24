@@ -26,12 +26,16 @@ class RegisterActivityIntents extends intentBase_1.IntentBase {
                 const title = builder.EntityRecognizer.findEntity(args.entities, "text");
                 const complexity = builder.EntityRecognizer.findEntity(args.entities, "complexity");
                 const taskid = builder.EntityRecognizer.findEntity(args.entities, "entityId");
+                const taskname = builder.EntityRecognizer.findEntity(args.entities, "command_or_target");
+                const project = builder.EntityRecognizer.findEntity(args.entities, "location");
                 let activity = {
                     complexity: complexity && complexity.entity ?
                         service_1.IteratorService.convertComplexity2Number(complexity.entity) : undefined,
                     id: 0,
+                    project: project ? project.entity : undefined,
                     taskId: taskid && taskid.entity ?
                         parseInt(taskid.entity, 10) : undefined,
+                    taskName: taskname ? taskname.entity : undefined,
                     title: title ? title.entity.replace("\"", "") : undefined,
                 };
                 session.dialogData.activity = activity;
@@ -43,8 +47,8 @@ class RegisterActivityIntents extends intentBase_1.IntentBase {
                 }
             },
             (session, results, next) => {
-                if (results.activity) {
-                    session.dialogData.activity = results.activity;
+                if (results.response && results.response.activity) {
+                    session.dialogData.activity = results.response.activity;
                 }
                 let activity = session.dialogData.activity;
                 if (!activity.complexity) {
@@ -55,21 +59,33 @@ class RegisterActivityIntents extends intentBase_1.IntentBase {
                 }
             },
             (session, results, next) => {
-                if (results.activity) {
-                    session.dialogData.activity = results.activity;
+                if (results.response && results.response.activity) {
+                    session.dialogData.activity = results.response.activity;
+                }
+                let activity = session.dialogData.activity;
+                if (!activity.taskId && activity.taskName && activity.taskName.length > 0) {
+                    session.beginDialog("/searchTaskForActivity", { activity: session.dialogData.activity });
+                }
+                else {
+                    next();
+                }
+            },
+            (session, results, next) => {
+                if (results.response && results.response.activity) {
+                    session.dialogData.activity = results.response.activity;
                 }
                 let activity = session.dialogData.activity;
                 session.beginDialog("/getActivityTaskId", { activity: session.dialogData.activity });
             },
             (session, results, next) => {
-                if (results.activity) {
-                    session.dialogData.activity = results.activity;
+                if (results.response && results.response.activity) {
+                    session.dialogData.activity = results.response.activity;
                 }
                 session.beginDialog("/confirmActivityCreation", { activity: session.dialogData.activity });
             },
             (session, results, next) => __awaiter(this, void 0, void 0, function* () {
-                if (results.activity) {
-                    session.dialogData.activity = results.activity;
+                if (results.response && results.response.activity) {
+                    session.dialogData.activity = results.response.activity;
                 }
                 const activity = session.dialogData.activity;
                 const result = yield service_1.IteratorService.createActivity(session.userData.user, activity.taskId, activity.title, activity.complexity);

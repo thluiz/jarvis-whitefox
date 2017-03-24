@@ -23,6 +23,7 @@ class RegisterActivityDialogs {
         this.OptionChangeComplexity = "Alterar a complexidade";
         this.OptionChangeTask = "Alterar a tarefa";
         this.OptionCancel = "Deixa para lá, não quero mais lançar essa atividade.";
+        this.OptionSearchOtherTask = "Procurar outra tarefa";
         this.confirmationOptions = [
             this.OptionOk,
             this.OptionChangeTitle,
@@ -32,40 +33,36 @@ class RegisterActivityDialogs {
         ];
     }
     setup(bot) {
-        bot.dialog("/getActivityTitle", [(session, args, next) => {
+        bot.dialog("/getActivityTitle", [(session, args) => {
                 if (args.activity) {
                     session.dialogData.activity = args.activity;
                 }
                 if (session.dialogData.activity.title && session.dialogData.activity.title.length >= 3) {
-                    next();
+                    return;
                 }
-                else {
-                    builder.Prompts.text(session, !args.retry ?
-                        "Por favor, poderia informar o título da atividade?"
-                        : "Informe ao menos 3 caracteres para o título da atividade: ");
-                }
-            }, (session, results, next) => {
+                builder.Prompts.text(session, !args.retry ?
+                    "Por favor, poderia informar o título da atividade?"
+                    : "Informe ao menos 3 caracteres para o título da atividade: ");
+            }, (session, results) => {
                 if (results.response && results.response.length <= 3) {
                     session.replaceDialog("/getActivityTitle", { activity: session.dialogData.activity, retry: true });
                     return;
                 }
                 session.dialogData.activity.title = results.response;
-                next({ activity: session.dialogData.activity });
+                session.endDialogWithResult({ response: { activity: session.dialogData.activity } });
             }]);
-        bot.dialog("/getActivityComplexity", [(session, args, next) => {
+        bot.dialog("/getActivityComplexity", [(session, args) => {
                 if (args.activity) {
                     session.dialogData.activity = args.activity;
                 }
                 if (session.dialogData.activity.complexity
                     && session.dialogData.activity.complexity > 0) {
-                    next();
+                    return;
                 }
-                else {
-                    builder.Prompts.text(session, !args.retry ?
-                        "Por favor, poderia informar a complexidade da atividade?"
-                        : "Não entendi, a complexidade precisa ser meio(a), 0.5, 1, 2 ou 3. Poderia informar?");
-                }
-            }, (session, results, next) => {
+                builder.Prompts.text(session, !args.retry ?
+                    "Por favor, poderia informar a complexidade da atividade?"
+                    : "Não entendi, a complexidade precisa ser meio(a), 0,5, 0.5, 1, 2 ou 3. Poderia informar?");
+            }, (session, results) => {
                 if (results.response) {
                     const complexity = iteratorService_1.IteratorService.convertComplexity2Number(results.response);
                     if (complexity <= 0) {
@@ -74,22 +71,90 @@ class RegisterActivityDialogs {
                     }
                     session.dialogData.activity.complexity = complexity;
                 }
-                next({ activity: session.dialogData.activity });
+                session.endDialogWithResult({ response: { activity: session.dialogData.activity } });
             }]);
-        bot.dialog("/getActivityTaskId", [(session, args, next) => __awaiter(this, void 0, void 0, function* () {
+        bot.dialog("/getTaskNameForSearchTask", [(session, args) => {
+                session.dialogData.activity = args.activity;
+                let q = args.activity.taskName && args.activity.taskName.length > 0 ?
+                    `Acho que não entendi o título '${args.activity.taskName}', ` +
+                        "poderia informar outro título para que eu pesquise?"
+                    : "Poderia informar a tarefa para que eu pesquise?";
+                q = q + " \n\nSe souber o número é só escrever aqui que prosseguimos daqui mesmo";
+                builder.Prompts.text(session, q + "\n\nVocê também pode informar 0 " +
+                    "ou cancelar que encerramos esse cadastro agora");
+            }, (session, results) => {
+                if (parseInt(results.response, 10) === 0 || results.response.toLowerCase() === "cancelar") {
+                    session.endConversation("Ok, depois continuamos então");
+                    return;
+                }
+                if (parseInt(results.response, 10) > 0) {
+                    session.dialogData.activity.taskId = parseInt(results.response, 10);
+                    session.dialogData.activity.taskName = undefined;
+                    session.replaceDialog("/getActivityTaskId", { activity: session.dialogData.activity });
+                    return;
+                }
+                session.dialogData.activity.taskName = results.response;
+                session.replaceDialog("/searchTaskForActivity", { activity: session.dialogData.activity });
+            }]);
+        bot.dialog("/searchTaskForActivity", [(session, args) => __awaiter(this, void 0, void 0, function* () {
                 if (args.activity) {
                     session.dialogData.activity = args.activity;
                 }
-                if (!session.dialogData.activity.taskId) {
-                    builder.Prompts.number(session, !args.retry ?
-                        "Poderia informar em qual tarefa devo lançar as complexidades?"
-                        : "Informe outra tarefa para que eu possa lançar, se quiser cancelar, é só informar \"0\" que encerramos esse cadastro");
+                let activity = session.dialogData.activity;
+                if (activity.taskId && activity.taskId > 0) {
+                    return;
+                }
+                if (activity.taskName && activity.taskName.length > 0) {
+                    session.sendTyping();
+                    let searchResult = yield iteratorService_1.IteratorService.Search(session.userData.user, false, [activity.project], [], ["opentask"], activity.taskName, 10);
+                    if (!searchResult.success) {
+                        session.endConversation(`Ocorreu o seguinte erro ao buscar a tarefa: ${searchResult.message}` +
+                            "\n\n Por favor, tente novamente.");
+                        return;
+                    }
+                    if (!searchResult.data || !searchResult.data[0]) {
+                        session.replaceDialog("/getTaskNameForSearchTask", { activity: session.dialogData.activity });
+                        return;
+                    }
+                    if (searchResult.data[0].items.length === 1) {
+                        activity.taskId = searchResult.data[0].items[0].id;
+                        session.endDialogWithResult({ response: { activity } });
+                        return;
+                    }
+                    let options = [];
+                    for (let d of searchResult.data) {
+                        for (let i of d.items) {
+                            options[options.length] = `${i.id} - ${i.name}`;
+                        }
+                    }
+                    options[options.length] = this.OptionSearchOtherTask;
+                    session.dialogData.possibleTasks = options;
+                    builder.Prompts.choice(session, "Encontrei várias tarefas possíveis, qual seria?", options, { listStyle: builder.ListStyle.list });
+                }
+            }), (session, results) => {
+                if (results.response) {
+                    if (results.response.entity === this.OptionSearchOtherTask) {
+                        session.replaceDialog("/getTaskNameForSearchTask", { activity: session.dialogData.activity });
+                        return;
+                    }
+                    const choice = results.response.entity.split(" - ");
+                    session.dialogData.activity.taskId = choice[0];
+                    session.dialogData.activity.taskName = choice[1];
+                }
+                session.endDialogWithResult({ response: { activity: session.dialogData.activity } });
+            }]);
+        bot.dialog("/getActivityTaskId", [(session, args, next) => __awaiter(this, void 0, void 0, function* () {
+                if (args && args.activity) {
+                    session.dialogData.activity = args.activity;
+                }
+                if (!session.dialogData.activity || !session.dialogData.activity.taskId) {
+                    session.replaceDialog("/getTaskNameForSearchTask", { activity: session.dialogData.activity });
                 }
                 else {
                     next();
                 }
             }),
-            (session, results, next) => __awaiter(this, void 0, void 0, function* () {
+            (session, results) => __awaiter(this, void 0, void 0, function* () {
                 if (results.response >= 0) {
                     const taskId = parseInt(results.response, 10);
                     if (taskId === 0) {
@@ -99,11 +164,10 @@ class RegisterActivityDialogs {
                     }
                     session.dialogData.activity.taskId = taskId;
                 }
-                session.send("Ok, validando a tarefa escolhida...");
                 session.sendTyping();
                 const validationResult = yield iteratorService_1.IteratorService.ValidateTaskForNewActivity(session.userData.user, session.dialogData.activity.taskId);
                 if (validationResult.success) {
-                    next({ activity: session.dialogData.activity });
+                    session.endDialogWithResult({ response: { activity: session.dialogData.activity } });
                 }
                 else {
                     session.dialogData.activity.taskId = undefined;
@@ -137,7 +201,7 @@ class RegisterActivityDialogs {
                 if (results.response.entity === this.OptionOk
                     || results.response.entity === this.OptionTryAgain) {
                     session.dialogData.activity.changed = false;
-                    next({ activity: session.dialogData.activity });
+                    session.endDialogWithResult({ response: { activity: session.dialogData.activity } });
                     return;
                 }
                 if (results.response.entity === this.OptionChangeTitle) {
@@ -155,7 +219,8 @@ class RegisterActivityDialogs {
                 if (results.response.entity === this.OptionChangeTask) {
                     session.dialogData.activity.changed = true;
                     session.dialogData.activity.taskId = undefined;
-                    session.beginDialog("/getActivityTaskId", { activity: session.dialogData.activity, retry: false });
+                    session.dialogData.activity.taskName = undefined;
+                    session.beginDialog("/getTaskNameForSearchTask", { activity: session.dialogData.activity, retry: false });
                     return;
                 }
                 if (results.response.entity === this.OptionCancel) {
@@ -164,15 +229,15 @@ class RegisterActivityDialogs {
                     return;
                 }
             },
-            (session, results, next) => {
-                if (results.activity) {
-                    session.dialogData.activity = results.activity;
+            (session, results) => {
+                if (results.response.activity) {
+                    session.dialogData.activity = results.response.activity;
                 }
                 if (session.dialogData.activity.changed) {
                     session.replaceDialog("/confirmActivityCreation", { activity: session.dialogData.activity });
                     return;
                 }
-                next({ activity: session.dialogData.activity });
+                session.endDialogWithResult({ response: { activity: session.dialogData.activity } });
             }]);
     }
 }

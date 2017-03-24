@@ -15,7 +15,7 @@ const sqlParameter_1 = require("../sqlParameter");
 const IR = new iteratorBaseRepository_1.IteratorBaseRepository();
 class IteratorService {
     static convertComplexity2Number(complexity) {
-        const half = /(0.5|meio|meia|0\ .\ 5)/;
+        const half = /(0.5|meio|meia|0\ .\ 5|0\,5|0\ \,\ 5)/;
         const one = /(1|um|uma)/;
         const two = /(2|dois|duas)/;
         const three = /(3|tres|três)/;
