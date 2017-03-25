@@ -1,4 +1,3 @@
-import { Project } from './';
 export class Activity {
     public id: number;
     public title: string;

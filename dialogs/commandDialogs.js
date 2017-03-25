@@ -8,6 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const await_to_js_1 = require("await-to-js");
 const builder = require("botbuilder");
 const iteratorBaseRepository_1 = require("../domain/repositories/iteratorBaseRepository");
 const result_1 = require("../domain/result");
@@ -27,14 +28,22 @@ class CommandDialogs {
                 session.endDialog("Você precisa estar logado para que possa ajuda-lo");
                 return;
             }
-            const commands = yield SecurityService_1.SecurityService.getAvailableCommands(session.userData.user);
+            const [err, commands] = yield await_to_js_1.default(SecurityService_1.SecurityService.getAvailableCommands(session.userData.user));
+            if (err || !commands.success) {
+                session.endDialog(`Ocorreu o seguinte erro ao consultar o [help]: ${commands.message || err.message}`);
+                return;
+            }
             session.send("No momento os comandos disponíveis são: ");
             session.endDialog(commands.data);
         }));
         bot.dialog("/saveSessionAndNotify", (session, data) => __awaiter(this, void 0, void 0, function* () {
             session.userData.user = data.user;
             session.userData.login = data.login;
-            const msg = yield SecurityService_1.SecurityService.getWelcomeMessage(data.user);
+            const [err, msg] = yield await_to_js_1.default(SecurityService_1.SecurityService.getWelcomeMessage(data.user));
+            if (err || !msg.success) {
+                session.endDialog(`Ocorreu o seguinte erro ao salvar os dados do seu acesso:` +
+                    `${msg.message || err.message}`);
+            }
             session.endDialog(msg.data);
         }));
         bot.dialog("/logOut", [
@@ -91,12 +100,13 @@ class CommandDialogs {
     }
     atualizarToken(session, results, revokeAccess = false) {
         return __awaiter(this, void 0, void 0, function* () {
-            const result = yield this.createAccessToken(session, revokeAccess);
+            const [err, result] = yield await_to_js_1.default(this.createAccessToken(session, revokeAccess));
             if (result.success) {
                 session.endDialog("Email de validação enviado. Por favor, autorize o acesso às minhas funções!");
-                return;
+                return true;
             }
-            session.endDialog(`Ocorreu algum erro no token, por favor, acione o suporte: ${result.message}`);
+            session.endDialog(`Ocorreu algum erro no token, por favor, acione o suporte: ${result.message || err.message}`);
+            return false;
         });
     }
     ;
@@ -107,15 +117,15 @@ class CommandDialogs {
             const responseAdress = session.message.address;
             session.send("Criando Token de acesso...");
             session.sendTyping();
-            const tokenResult = yield SecurityService_1.SecurityService.createLoginRequest(email, responseAdress);
-            if (!tokenResult.success) {
-                return result_1.Result.Fail(tokenResult.message);
+            const [errLogin, tokenResult] = yield await_to_js_1.default(SecurityService_1.SecurityService.createLoginRequest(email, responseAdress));
+            if (errLogin || !tokenResult.success) {
+                return result_1.Result.Fail(tokenResult.message || errLogin.message);
             }
             session.send(`Token criado, enviando email de liberação para ${email}...`);
             session.sendTyping();
-            const emailResult = yield SecurityService_1.SecurityService.sendLoginRequestEmail(responseAdress.channelId, email, tokenResult.data);
-            if (!emailResult.success) {
-                return emailResult;
+            const [errEmail, emailResult] = yield await_to_js_1.default(SecurityService_1.SecurityService.sendLoginRequestEmail(responseAdress.channelId, email, tokenResult.data));
+            if (errEmail || !emailResult.success) {
+                return emailResult || result_1.Result.Fail(errEmail.message);
             }
             return result_1.Result.Ok();
         });

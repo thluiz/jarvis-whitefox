@@ -1,3 +1,4 @@
+import to from "await-to-js";
 import * as builder from "botbuilder";
 import { Constants } from "../domain/constants";
 import { IteratorBaseRepository } from "../domain/repositories/iteratorBaseRepository";
@@ -98,10 +99,10 @@ export class GeneralIntents extends IntentBase {
     private async updateIncidents(session: builder.Session): Promise<any> {
         session.send("Esse pode ser um pouco lento, mas já estou executando... ");
         session.sendTyping();
-        const result = await IteratorService.updateIncidents();
+        const [err, result] = await to(IteratorService.updateIncidents());
 
-        if (!result.success) {
-            session.endDialog(`Ops! aconteceu algum erro: ${result.message || "Não definido"}`);
+        if (err || !result.success) {
+            session.endDialog(`Ops! aconteceu algum erro: ${err.message || result.message || "Não definido"}`);
         } else {
             session.endDialog(`Ok! chamados atualizados no iterator!`);
         }
@@ -110,11 +111,11 @@ export class GeneralIntents extends IntentBase {
     private async updateTracking(session: builder.Session): Promise<any> {
         session.send("Esse é um pouco lento, peraí... ");
         session.sendTyping();
-        const result = await IR.executeSPNoResult("FillFutureWorkDaysSlots",
-            SQLParameter.Int("billingCenterId", Constants.BillingCenterBT));
+        const [err, result] = await to(IR.executeSPNoResult("FillFutureWorkDaysSlots",
+            SQLParameter.Int("billingCenterId", Constants.BillingCenterBT)));
 
-        if (!result.success) {
-            session.endDialog(`Ops! aconteceu algum erro: ${result.message || "Não definido"}`);
+        if (err || !result.success) {
+            session.endDialog(`Ops! aconteceu algum erro: ${err.message || result.message || "Não definido"}`);
         } else {
             session.endDialog(`Ok! acompanhamento atualizado!`);
         }

@@ -1,4 +1,4 @@
-
+import to from "await-to-js";
 import * as builder from "botbuilder";
 import { Task } from "../domain/entities";
 import { IteratorBaseRepository } from "../domain/repositories/iteratorBaseRepository";
@@ -47,7 +47,7 @@ export class RegisterTaskDialogs implements IDialogBase {
             }
 
             session.dialogData.task.title = results.response;
-            next(<builder.IDialogResult<Task>> { task: session.dialogData.task });
+            next(<builder.IDialogResult<Task>>{ task: session.dialogData.task });
         }],
         );
 
@@ -106,14 +106,16 @@ export class RegisterTaskDialogs implements IDialogBase {
 
             session.send("Ok, validando a tarefa escolhida...");
             session.sendTyping();
-            const validationResult = await IteratorService.ValidateProjectForNewTask(
-                session.userData.user, session.dialogData.task.projectId);
+            const [err, validationResult] = await to(IteratorService.ValidateProjectForNewTask(
+                session.userData.user, session.dialogData.task.projectId));
 
             if (validationResult.success) {
                 next(<builder.IDialogResult<Task>> { task: session.dialogData.task });
             } else {
                 session.dialogData.task.projectId = undefined;
-                session.send(`hum... esse projeto está com o seguinte problema: ${validationResult.message}`);
+                session.send("hum... esse projeto está com o seguinte problema:" +
+                    (validationResult.message || err.message));
+
                 session.replaceDialog("/getTaskProjectId",
                     { task: session.dialogData.task, retry: true });
             }
@@ -125,9 +127,9 @@ export class RegisterTaskDialogs implements IDialogBase {
                 session.dialogData.task = args.task;
             }
 
-            const task = <Task> session.dialogData.task;
+            const task = <Task>session.dialogData.task;
             // tslint:disable-next-line:max-line-length
-            let msg =  "Hum, deixe-me ver... Já tenho o que preciso para cadastrar sua atividade, apenas confirme os dados: \n\n";
+            let msg = "Hum, deixe-me ver... Já tenho o que preciso para cadastrar sua atividade, apenas confirme os dados: \n\n";
             let options = this.confirmationOptions;
 
             if (args.errorOnSave) {
@@ -146,7 +148,7 @@ export class RegisterTaskDialogs implements IDialogBase {
             if (results.response.entity === this.OptionOk
                 || results.response.entity === this.OptionTryAgain) {
                 session.dialogData.task.changed = false;
-                next(<builder.IDialogResult<Task>> { task: session.dialogData.task });
+                next(<builder.IDialogResult<Task>>{ task: session.dialogData.task });
                 return;
             }
 
@@ -190,7 +192,7 @@ export class RegisterTaskDialogs implements IDialogBase {
                 return;
             }
 
-            next(<builder.IDialogResult<Task>> { task: session.dialogData.task });
+            next(<builder.IDialogResult<Task>>{ task: session.dialogData.task });
         }],
         );
     }

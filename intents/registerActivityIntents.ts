@@ -1,3 +1,4 @@
+import to from "await-to-js";
 import * as builder from "botbuilder";
 import { IActivityResponse } from "../dialogs/registerActivityDialogs";
 import { Activity, Task } from "../domain/entities";
@@ -91,12 +92,12 @@ export class RegisterActivityIntents extends IntentBase {
                 }
                 const activity = <Activity> session.dialogData.activity;
 
-                const result = await IteratorService.createActivity(
-                    session.userData.user, activity.taskId, activity.title, activity.complexity);
+                const [err, result] = await to(IteratorService.createActivity(
+                    session.userData.user, activity.taskId, activity.title, activity.complexity));
 
-                if (!result.success) {
+                if (err || !result.success) {
                     session.beginDialog("/confirmActivityCreation",
-                        { activity: session.dialogData.activity, errorOnSave: result.message });
+                        { activity: session.dialogData.activity, errorOnSave: (result.message || err.message) });
                     return;
                 }
 

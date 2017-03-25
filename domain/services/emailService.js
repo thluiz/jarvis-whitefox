@@ -31,7 +31,7 @@ class EmailService {
                     to: email,
                 };
                 // send mail with defined transport object
-                yield transporter.sendMail(mailOptions, (error, info) => {
+                transporter.sendMail(mailOptions, (error, info) => {
                     if (error) {
                         return result_1.Result.Fail(error);
                     }

@@ -8,6 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const await_to_js_1 = require("await-to-js");
 const builder = require("botbuilder");
 const iteratorBaseRepository_1 = require("../domain/repositories/iteratorBaseRepository");
 const iteratorService_1 = require("../domain/services/iteratorService");
@@ -99,13 +100,14 @@ class RegisterTaskDialogs {
                 }
                 session.send("Ok, validando a tarefa escolhida...");
                 session.sendTyping();
-                const validationResult = yield iteratorService_1.IteratorService.ValidateProjectForNewTask(session.userData.user, session.dialogData.task.projectId);
+                const [err, validationResult] = yield await_to_js_1.default(iteratorService_1.IteratorService.ValidateProjectForNewTask(session.userData.user, session.dialogData.task.projectId));
                 if (validationResult.success) {
                     next({ task: session.dialogData.task });
                 }
                 else {
                     session.dialogData.task.projectId = undefined;
-                    session.send(`hum... esse projeto está com o seguinte problema: ${validationResult.message}`);
+                    session.send("hum... esse projeto está com o seguinte problema:" +
+                        (validationResult.message || err.message));
                     session.replaceDialog("/getTaskProjectId", { task: session.dialogData.task, retry: true });
                 }
             }),

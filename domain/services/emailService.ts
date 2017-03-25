@@ -1,3 +1,4 @@
+import to from "await-to-js";
 import { Result } from "../../domain/result";
 import { IService } from "./service";
 
@@ -25,7 +26,7 @@ export class EmailService implements IService {
             };
 
             // send mail with defined transport object
-            await transporter.sendMail(mailOptions, (error, info) => {
+            transporter.sendMail(mailOptions, (error, info) => {
                 if (error) {
                     return Result.Fail(error);
                 }

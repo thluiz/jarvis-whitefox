@@ -8,6 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const await_to_js_1 = require("await-to-js");
 const http = require("http");
 const result_1 = require("../../domain/result");
 const iteratorBaseRepository_1 = require("../repositories/iteratorBaseRepository");
@@ -59,7 +60,7 @@ class IteratorService {
                 host: process.env.ITERATORSITE_URL,
                 path: process.env.ITERATORSITE_UpdateIncidentsPath,
             };
-            const result = yield new Promise((resolve) => {
+            const [err, result] = yield await_to_js_1.default(new Promise((resolve) => {
                 http.get(options, (res) => {
                     if (res.statusCode === 200) {
                         resolve(result_1.Result.Ok());
@@ -67,12 +68,15 @@ class IteratorService {
                     else {
                         resolve(result_1.Result.Fail(`Error: ${res.statusCode}`));
                     }
-                }).on("error", (err) => {
-                    if (err) {
+                }).on("error", (error) => {
+                    if (error) {
                         resolve(result_1.Result.Fail(err.message));
                     }
                 });
-            });
+            }));
+            if (err) {
+                return result_1.Result.Fail(err.message);
+            }
             return result;
         });
     }

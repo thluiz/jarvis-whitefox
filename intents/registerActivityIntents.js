@@ -8,6 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const await_to_js_1 = require("await-to-js");
 const builder = require("botbuilder");
 const service_1 = require("../domain/services/service");
 const intentBase_1 = require("./intentBase");
@@ -88,9 +89,9 @@ class RegisterActivityIntents extends intentBase_1.IntentBase {
                     session.dialogData.activity = results.response.activity;
                 }
                 const activity = session.dialogData.activity;
-                const result = yield service_1.IteratorService.createActivity(session.userData.user, activity.taskId, activity.title, activity.complexity);
-                if (!result.success) {
-                    session.beginDialog("/confirmActivityCreation", { activity: session.dialogData.activity, errorOnSave: result.message });
+                const [err, result] = yield await_to_js_1.default(service_1.IteratorService.createActivity(session.userData.user, activity.taskId, activity.title, activity.complexity));
+                if (err || !result.success) {
+                    session.beginDialog("/confirmActivityCreation", { activity: session.dialogData.activity, errorOnSave: (result.message || err.message) });
                     return;
                 }
                 session.endDialog("Atividade cadastrada com sucesso!");

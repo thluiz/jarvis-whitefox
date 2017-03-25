@@ -1,3 +1,4 @@
+import to from "await-to-js";
 import * as builder from "botbuilder";
 import { IteratorBaseRepository } from "../domain/repositories/iteratorBaseRepository";
 import { Result } from "../domain/result";
@@ -24,7 +25,13 @@ export class CommandDialogs implements IDialogBase {
                 session.endDialog("Você precisa estar logado para que possa ajuda-lo");
                 return;
             }
-            const commands: Result<string> = await SecurityService.getAvailableCommands(session.userData.user);
+            const [err, commands] = await to(SecurityService.getAvailableCommands(session.userData.user));
+
+            if (err || !commands.success) {
+                session.endDialog(`Ocorreu o seguinte erro ao consultar o [help]: ${commands.message || err.message}`);
+                return;
+            }
+
             session.send("No momento os comandos disponíveis são: ");
             session.endDialog(commands.data);
         });
@@ -32,7 +39,11 @@ export class CommandDialogs implements IDialogBase {
         bot.dialog("/saveSessionAndNotify", async (session, data) => {
             session.userData.user = data.user;
             session.userData.login = data.login;
-            const msg: Result<string> = await SecurityService.getWelcomeMessage(data.user);
+            const [err, msg] = await to(SecurityService.getWelcomeMessage(data.user));
+            if (err || !msg.success) {
+                session.endDialog(`Ocorreu o seguinte erro ao salvar os dados do seu acesso:` +
+                `${ msg.message || err.message }`);
+            }
             session.endDialog(msg.data);
         });
 
@@ -92,15 +103,16 @@ export class CommandDialogs implements IDialogBase {
         ]);
     }
 
-    private async atualizarToken(session, results, revokeAccess = false) {
-        const result = await this.createAccessToken(session, revokeAccess);
+    private async atualizarToken(session, results, revokeAccess = false) : boolean {
+        const [err, result] = await to(this.createAccessToken(session, revokeAccess));
 
         if (result.success) {
             session.endDialog("Email de validação enviado. Por favor, autorize o acesso às minhas funções!");
-            return;
+            return true;
         }
 
-        session.endDialog(`Ocorreu algum erro no token, por favor, acione o suporte: ${result.message}`);
+        session.endDialog(`Ocorreu algum erro no token, por favor, acione o suporte: ${result.message || err.message}`);
+        return false;
     };
 
     private async createAccessToken(session: builder.Session, revokeAccess: boolean): Promise<Result<any>> {
@@ -110,19 +122,19 @@ export class CommandDialogs implements IDialogBase {
 
         session.send("Criando Token de acesso...");
         session.sendTyping();
-        const tokenResult = await SecurityService.createLoginRequest(email, responseAdress);
-        if (!tokenResult.success) {
-            return Result.Fail<any>(tokenResult.message);
+        const [ errLogin, tokenResult] = await to(SecurityService.createLoginRequest(email, responseAdress));
+        if (errLogin || !tokenResult.success) {
+            return Result.Fail<any>(tokenResult.message || errLogin.message);
         }
 
         session.send(`Token criado, enviando email de liberação para ${email}...`);
         session.sendTyping();
 
-        const emailResult = await SecurityService.sendLoginRequestEmail(
-            responseAdress.channelId, email, tokenResult.data);
+        const [ errEmail, emailResult] = await to(SecurityService.sendLoginRequestEmail(
+            responseAdress.channelId, email, tokenResult.data));
 
-        if (!emailResult.success) {
-            return emailResult;
+        if (errEmail || !emailResult.success) {
+            return emailResult || Result.Fail(errEmail.message);
         }
 
         return Result.Ok();

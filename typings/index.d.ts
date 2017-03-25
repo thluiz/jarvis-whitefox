@@ -6,3 +6,4 @@
 /// <reference path="modules/nodemailer-direct-transport/index.d.ts" />
 /// <reference path="modules/nodemailer-smtp-transport/index.d.ts" />
 /// <reference path="modules/restify/index.d.ts" />
+/// <reference path="modules/await-to-js.d.ts" />

@@ -8,6 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const await_to_js_1 = require("await-to-js");
 const builder = require("botbuilder");
 const constants_1 = require("../domain/constants");
 const iteratorBaseRepository_1 = require("../domain/repositories/iteratorBaseRepository");
@@ -94,9 +95,9 @@ class GeneralIntents extends intentBase_1.IntentBase {
         return __awaiter(this, void 0, void 0, function* () {
             session.send("Esse pode ser um pouco lento, mas já estou executando... ");
             session.sendTyping();
-            const result = yield service_1.IteratorService.updateIncidents();
-            if (!result.success) {
-                session.endDialog(`Ops! aconteceu algum erro: ${result.message || "Não definido"}`);
+            const [err, result] = yield await_to_js_1.default(service_1.IteratorService.updateIncidents());
+            if (err || !result.success) {
+                session.endDialog(`Ops! aconteceu algum erro: ${err.message || result.message || "Não definido"}`);
             }
             else {
                 session.endDialog(`Ok! chamados atualizados no iterator!`);
@@ -107,9 +108,9 @@ class GeneralIntents extends intentBase_1.IntentBase {
         return __awaiter(this, void 0, void 0, function* () {
             session.send("Esse é um pouco lento, peraí... ");
             session.sendTyping();
-            const result = yield IR.executeSPNoResult("FillFutureWorkDaysSlots", sqlParameter_1.SQLParameter.Int("billingCenterId", constants_1.Constants.BillingCenterBT));
-            if (!result.success) {
-                session.endDialog(`Ops! aconteceu algum erro: ${result.message || "Não definido"}`);
+            const [err, result] = yield await_to_js_1.default(IR.executeSPNoResult("FillFutureWorkDaysSlots", sqlParameter_1.SQLParameter.Int("billingCenterId", constants_1.Constants.BillingCenterBT)));
+            if (err || !result.success) {
+                session.endDialog(`Ops! aconteceu algum erro: ${err.message || result.message || "Não definido"}`);
             }
             else {
                 session.endDialog(`Ok! acompanhamento atualizado!`);

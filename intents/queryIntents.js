@@ -8,6 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const await_to_js_1 = require("await-to-js");
 const builder = require("botbuilder");
 const service_1 = require("../domain/services/service");
 const utilsService_1 = require("../domain/services/utilsService");
@@ -52,9 +53,9 @@ class QueryIntents extends intentBase_1.IntentBase {
                 }
                 let billingCenters = this.setup_billing_centers(bt, poliedro);
                 session.sendTyping();
-                let results = yield service_1.IteratorService.Search(session.userData.user, own, projects, this.setup_billing_centers(bt, poliedro), this.setup_locations(locations), text.map((t) => { return t.entity; }).join(" "));
-                if (!results.success) {
-                    session.endDialog(`Ocorreu o seguinte erro: ${results.message}`);
+                const [err, results] = yield await_to_js_1.default(service_1.IteratorService.Search(session.userData.user, own, projects, this.setup_billing_centers(bt, poliedro), this.setup_locations(locations), text.map((t) => { return t.entity; }).join(" ")));
+                if (err || !results.success) {
+                    session.endDialog(`Ocorreu o seguinte erro: ${results.message || err.message}`);
                     return;
                 }
                 if (!results.data) {

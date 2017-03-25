@@ -1,3 +1,4 @@
+import to  from "await-to-js";
 import * as builder from "botbuilder";
 import { IteratorService } from "../domain/services/service";
 import { UtilsService } from "../domain/services/utilsService";
@@ -49,15 +50,16 @@ export class QueryIntents extends IntentBase {
                 let billingCenters = this.setup_billing_centers(bt, poliedro);
 
                 session.sendTyping();
-                let results = await IteratorService.Search(session.userData.user, own, projects,
-                    this.setup_billing_centers(bt, poliedro),
-                    this.setup_locations(locations),
-                    text.map((t) => { return t.entity; }).join(" "));
+                const [ err, results ] = await to(IteratorService.Search(session.userData.user, own, projects,
+                                                    this.setup_billing_centers(bt, poliedro),
+                                                    this.setup_locations(locations),
+                                                    text.map((t) => { return t.entity; }).join(" ")));
 
-                if (!results.success) {
-                    session.endDialog(`Ocorreu o seguinte erro: ${results.message}`);
+                if (err || !results.success) {
+                    session.endDialog(`Ocorreu o seguinte erro: ${results.message || err.message}`);
                     return;
                 }
+
                 if (!results.data) {
                     session.send("Nenhum registro encontrado!");
                     return;

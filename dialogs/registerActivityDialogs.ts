@@ -1,5 +1,6 @@
-import { isNumber } from 'util';
+import to from "await-to-js";
 import * as builder from "botbuilder";
+import { isNumber } from "util";
 import { Activity } from "../domain/entities/activity";
 import { ItembacklogRepository } from "../domain/repositories/itemBacklogRepository";
 import { IteratorBaseRepository } from "../domain/repositories/iteratorBaseRepository";
@@ -84,7 +85,7 @@ export class RegisterActivityDialogs implements IDialogBase {
                 session.dialogData.activity.complexity = complexity;
             }
 
-            session.endDialogWithResult({ response: { activity: session.dialogData.activity }});
+            session.endDialogWithResult({ response: { activity: session.dialogData.activity } });
         }],
         );
 
@@ -92,15 +93,15 @@ export class RegisterActivityDialogs implements IDialogBase {
             session.dialogData.activity = args.activity;
             let q = args.activity.taskName && args.activity.taskName.length > 0 ?
                 `Acho que não entendi o título '${args.activity.taskName}', ` +
-                    "poderia informar outro título para que eu pesquise?"
+                "poderia informar outro título para que eu pesquise?"
                 : "Poderia informar a tarefa para que eu pesquise?";
 
             q = q + " \n\nSe souber o número é só escrever aqui que prosseguimos daqui mesmo";
 
             builder.Prompts.text(session, q + "\n\nVocê também pode informar 0 " +
-                                                "ou cancelar que encerramos esse cadastro agora");
+                "ou cancelar que encerramos esse cadastro agora");
         }, (session, results) => {
-            if (parseInt(results.response, 10) === 0 || (<string> results.response).toLowerCase()  === "cancelar" ) {
+            if (parseInt(results.response, 10) === 0 || (<string>results.response).toLowerCase() === "cancelar") {
                 session.endConversation("Ok, depois continuamos então");
                 return;
             }
@@ -108,13 +109,13 @@ export class RegisterActivityDialogs implements IDialogBase {
             if (parseInt(results.response, 10) > 0) {
                 session.dialogData.activity.taskId = parseInt(results.response, 10);
                 session.dialogData.activity.taskName = undefined;
-                session.replaceDialog("/getActivityTaskId", { activity: session.dialogData.activity  });
+                session.replaceDialog("/getActivityTaskId", { activity: session.dialogData.activity });
                 return;
             }
 
             session.dialogData.activity.taskName = results.response;
 
-            session.replaceDialog("/searchTaskForActivity", { activity: session.dialogData.activity  });
+            session.replaceDialog("/searchTaskForActivity", { activity: session.dialogData.activity });
         }]);
 
         bot.dialog("/searchTaskForActivity", [async (session, args) => {
@@ -122,7 +123,7 @@ export class RegisterActivityDialogs implements IDialogBase {
                 session.dialogData.activity = args.activity;
             }
 
-            let activity = <Activity> session.dialogData.activity;
+            let activity = <Activity>session.dialogData.activity;
 
             if (activity.taskId && activity.taskId > 0) {
                 return;
@@ -130,12 +131,13 @@ export class RegisterActivityDialogs implements IDialogBase {
 
             if (activity.taskName && activity.taskName.length > 0) {
                 session.sendTyping();
-                let searchResult = await IteratorService.Search(session.userData.user, false,
-                                    [activity.project], [], ["opentask"], activity.taskName, 10);
+                const [err, searchResult] = await to(IteratorService.Search(session.userData.user, false,
+                    [activity.project], [], ["opentask"], activity.taskName, 10));
 
-                if (!searchResult.success) {
-                    session.endConversation(`Ocorreu o seguinte erro ao buscar a tarefa: ${searchResult.message}` +
-                                            "\n\n Por favor, tente novamente.");
+                if (err || !searchResult.success) {
+                    session.endConversation("Ocorreu o seguinte erro ao buscar a tarefa:" +
+                        `\n\n\t ${searchResult.message || err.message} ` +
+                        "\n\n Por favor, tente novamente ou acione o suporte.");
                     return;
                 }
 
@@ -146,7 +148,7 @@ export class RegisterActivityDialogs implements IDialogBase {
 
                 if (searchResult.data[0].items.length === 1) {
                     activity.taskId = searchResult.data[0].items[0].id;
-                    session.endDialogWithResult({ response: { activity }});
+                    session.endDialogWithResult({ response: { activity } });
                     return;
                 }
 
@@ -159,7 +161,7 @@ export class RegisterActivityDialogs implements IDialogBase {
                 options[options.length] = this.OptionSearchOtherTask;
                 session.dialogData.possibleTasks = options;
                 builder.Prompts.choice(session, "Encontrei várias tarefas possíveis, qual seria?", options,
-                                                    { listStyle: builder.ListStyle.list });
+                    { listStyle: builder.ListStyle.list });
             }
         }, (session, results) => {
             if (results.response) {
@@ -201,28 +203,30 @@ export class RegisterActivityDialogs implements IDialogBase {
 
             session.sendTyping();
 
-            const validationResult = await IteratorService.ValidateTaskForNewActivity(
-                session.userData.user, session.dialogData.activity.taskId);
+            const [err, validationResult] = await to(IteratorService.ValidateTaskForNewActivity(
+                session.userData.user, session.dialogData.activity.taskId));
 
             if (validationResult.success) {
                 session.endDialogWithResult({ response: { activity: session.dialogData.activity } });
             } else {
                 session.dialogData.activity.taskId = undefined;
-                session.send(`hum... essa tarefa está com o seguinte problema: ${validationResult.message}`);
+                session.send(`hum... essa tarefa está com o seguinte problema:` +
+                    `\n\n\t ${validationResult.message || err.message}`);
+
                 session.replaceDialog("/getActivityTaskId",
                     { activity: session.dialogData.activity, retry: true });
             }
         },
         ]);
 
-        bot.dialog("/confirmActivityCreation", [ async (session, args, next) => {
+        bot.dialog("/confirmActivityCreation", [async (session, args, next) => {
             if (args.activity) {
                 session.dialogData.activity = args.activity;
             }
 
-            const activity = <Activity> session.dialogData.activity;
+            const activity = <Activity>session.dialogData.activity;
             // tslint:disable-next-line:max-line-length
-            let msg =  "Hum, deixe-me ver... Já tenho o que preciso para cadastrar sua atividade, apenas confirme os dados: \n\n";
+            let msg = "Hum, deixe-me ver... Já tenho o que preciso para cadastrar sua atividade, apenas confirme os dados: \n\n";
             let options = this.confirmationOptions;
 
             if (args.errorOnSave) {
@@ -230,7 +234,7 @@ export class RegisterActivityDialogs implements IDialogBase {
                 options[0] = this.OptionTryAgain;
             }
 
-            const resultTask = await TR.load(activity.taskId);
+            const [err, resultTask] = await to(TR.load(activity.taskId));
 
             if (resultTask.success) {
                 activity.taskName = resultTask.data.title;
@@ -248,7 +252,7 @@ export class RegisterActivityDialogs implements IDialogBase {
             if (results.response.entity === this.OptionOk
                 || results.response.entity === this.OptionTryAgain) {
                 session.dialogData.activity.changed = false;
-                session.endDialogWithResult({ response: { activity: session.dialogData.activity }});
+                session.endDialogWithResult({ response: { activity: session.dialogData.activity } });
                 return;
             }
 
@@ -293,7 +297,7 @@ export class RegisterActivityDialogs implements IDialogBase {
                 return;
             }
 
-            session.endDialogWithResult({ response: { activity: session.dialogData.activity }});
+            session.endDialogWithResult({ response: { activity: session.dialogData.activity } });
         }],
         );
     }

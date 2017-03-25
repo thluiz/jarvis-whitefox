@@ -1,3 +1,4 @@
+import to from "await-to-js";
 import * as http from "http";
 import { Result } from "../../domain/result";
 import * as Domain from "../entities";
@@ -80,19 +81,23 @@ export class IteratorService implements IService {
             path: process.env.ITERATORSITE_UpdateIncidentsPath,
         };
 
-        const result = await new Promise<Result<any>>((resolve) => {
+        const [err, result] = await to(new Promise<Result<any>>((resolve) => {
             http.get(options, (res) => {
                 if (res.statusCode === 200) {
                     resolve(Result.Ok());
                 } else {
                     resolve(Result.Fail(`Error: ${res.statusCode}`));
                 }
-            }).on("error", (err) => {
-                if (err) {
+            }).on("error", (error) => {
+                if (error) {
                     resolve(Result.Fail(err.message));
                 }
             });
-        });
+        }));
+
+        if (err) {
+            return Result.Fail(err.message);
+        }
 
         return result;
     }

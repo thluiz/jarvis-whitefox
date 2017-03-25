@@ -8,6 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const await_to_js_1 = require("await-to-js");
 const result_1 = require("../../domain/result");
 const loginRequestRepository_1 = require("../repositories/loginRequestRepository");
 const userRepository_1 = require("../repositories/userRepository");
@@ -32,7 +33,7 @@ class SecurityService {
         return __awaiter(this, void 0, void 0, function* () {
             const token = service_1.UtilsService.randomString(18);
             const temporaryToken = service_1.UtilsService.randomString(30);
-            const sp = yield (new loginRequestRepository_1.LoginRequestRepository()).create(email, token, temporaryToken, responseAddress);
+            const [err, sp] = yield await_to_js_1.default((new loginRequestRepository_1.LoginRequestRepository()).create(email, token, temporaryToken, responseAddress));
             if (!sp.success) {
                 return result_1.Result.Fail(sp.message);
             }
@@ -46,7 +47,10 @@ class SecurityService {
     }
     static getWelcomeMessage(user) {
         return __awaiter(this, void 0, void 0, function* () {
-            const commands = yield SecurityService.getAvailableCommands(user);
+            const [err, commands] = yield await_to_js_1.default(SecurityService.getAvailableCommands(user));
+            if (err) {
+                return result_1.Result.Fail(err.message);
+            }
             return result_1.Result.Ok(securityTemplates_1.SecurityTemplates.WelcomeMessage(user.name, commands.data));
         });
     }

@@ -8,6 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const await_to_js_1 = require("await-to-js");
 const builder = require("botbuilder");
 const itemBacklogRepository_1 = require("../domain/repositories/itemBacklogRepository");
 const iteratorBaseRepository_1 = require("../domain/repositories/iteratorBaseRepository");
@@ -106,10 +107,11 @@ class RegisterActivityDialogs {
                 }
                 if (activity.taskName && activity.taskName.length > 0) {
                     session.sendTyping();
-                    let searchResult = yield iteratorService_1.IteratorService.Search(session.userData.user, false, [activity.project], [], ["opentask"], activity.taskName, 10);
-                    if (!searchResult.success) {
-                        session.endConversation(`Ocorreu o seguinte erro ao buscar a tarefa: ${searchResult.message}` +
-                            "\n\n Por favor, tente novamente.");
+                    const [err, searchResult] = yield await_to_js_1.default(iteratorService_1.IteratorService.Search(session.userData.user, false, [activity.project], [], ["opentask"], activity.taskName, 10));
+                    if (err || !searchResult.success) {
+                        session.endConversation("Ocorreu o seguinte erro ao buscar a tarefa:" +
+                            `\n\n\t ${searchResult.message || err.message} ` +
+                            "\n\n Por favor, tente novamente ou acione o suporte.");
                         return;
                     }
                     if (!searchResult.data || !searchResult.data[0]) {
@@ -165,13 +167,14 @@ class RegisterActivityDialogs {
                     session.dialogData.activity.taskId = taskId;
                 }
                 session.sendTyping();
-                const validationResult = yield iteratorService_1.IteratorService.ValidateTaskForNewActivity(session.userData.user, session.dialogData.activity.taskId);
+                const [err, validationResult] = yield await_to_js_1.default(iteratorService_1.IteratorService.ValidateTaskForNewActivity(session.userData.user, session.dialogData.activity.taskId));
                 if (validationResult.success) {
                     session.endDialogWithResult({ response: { activity: session.dialogData.activity } });
                 }
                 else {
                     session.dialogData.activity.taskId = undefined;
-                    session.send(`hum... essa tarefa está com o seguinte problema: ${validationResult.message}`);
+                    session.send(`hum... essa tarefa está com o seguinte problema:` +
+                        `\n\n\t ${validationResult.message || err.message}`);
                     session.replaceDialog("/getActivityTaskId", { activity: session.dialogData.activity, retry: true });
                 }
             }),
@@ -188,7 +191,7 @@ class RegisterActivityDialogs {
                     msg = `Ocorreu o seguinte erro ao criar a atividade "${args.errorOnSave}" \n\n`;
                     options[0] = this.OptionTryAgain;
                 }
-                const resultTask = yield TR.load(activity.taskId);
+                const [err, resultTask] = yield await_to_js_1.default(TR.load(activity.taskId));
                 if (resultTask.success) {
                     activity.taskName = resultTask.data.title;
                 }

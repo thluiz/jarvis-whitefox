@@ -1,3 +1,4 @@
+import to from "await-to-js";
 import { IAddress } from "botbuilder";
 import { Result } from "../../domain/result";
 import { LoginRequest, User } from "../entities";
@@ -28,8 +29,8 @@ export class SecurityService implements IService {
         const token = UtilsService.randomString(18);
         const temporaryToken = UtilsService.randomString(30);
 
-        const sp = await (new LoginRequestRepository()).create(email,
-            token, temporaryToken, responseAddress);
+        const [err, sp] = await to((new LoginRequestRepository()).create(email,
+            token, temporaryToken, responseAddress));
 
         if (!sp.success) {
             return Result.Fail<string>(sp.message);
@@ -46,7 +47,12 @@ export class SecurityService implements IService {
     }
 
     public static async getWelcomeMessage(user: User): Promise<Result<string>> {
-        const commands = await SecurityService.getAvailableCommands(user);
+        const [err, commands] = await to(SecurityService.getAvailableCommands(user));
+
+        if (err) {
+            return Result.Fail<string>(err.message);
+        }
+
         return Result.Ok(SecurityTemplates.WelcomeMessage(user.name, commands.data));
     }
 }
