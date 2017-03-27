@@ -6,8 +6,10 @@ import { IteratorService } from "../domain/services/service";
 import { FunnyMessages } from "../domain/services/templates/funnyMessages";
 import { SQLParameter } from "../domain/sqlParameter";
 import { IntentBase } from "./intentBase";
+import { IntentEntities } from "./intentEntities";
 
 const IR = new IteratorBaseRepository();
+const IE = new IntentEntities();
 
 export class GeneralIntents extends IntentBase {
 
@@ -30,8 +32,8 @@ export class GeneralIntents extends IntentBase {
     public setup(dialog: builder.IntentDialog): void {
         dialog.matches("None", [
             (session, args, next) => {
-                const receivedCommand = builder.EntityRecognizer.findEntity(args.entities, "command_or_target");
-                const receivedText = builder.EntityRecognizer.findEntity(args.entities, "text");
+                const receivedCommand = builder.EntityRecognizer.findEntity(args.entities, IE.Command);
+                const receivedText = builder.EntityRecognizer.findEntity(args.entities, IE.Text);
 
                 if (!receivedCommand || !receivedCommand.entity) {
                     if (receivedText && receivedText.entity && receivedText.entity.length > 0) {

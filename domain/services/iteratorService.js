@@ -20,6 +20,9 @@ class IteratorService {
         const one = /(1|um|uma)/;
         const two = /(2|dois|duas)/;
         const three = /(3|tres|três)/;
+        const five = /(5|cinco)/;
+        const eight = /(8|oito)/;
+        const thirteen = /(13|treze)/;
         if (half.test(complexity)) {
             return 0.5;
         }
@@ -32,7 +35,17 @@ class IteratorService {
         if (three.test(complexity)) {
             return 3;
         }
-        return 0;
+        if (five.test(complexity)) {
+            return 5;
+        }
+        if (eight.test(complexity)) {
+            return 8;
+        }
+        if (thirteen.test(complexity)) {
+            return 13;
+        }
+        const parsed = parseInt(complexity, 10);
+        return isNaN(parsed) ? 0 : parsed;
     }
     static ValidateProjectForNewTask(user, projectId) {
         return __awaiter(this, void 0, void 0, function* () {

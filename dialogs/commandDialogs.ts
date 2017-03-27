@@ -103,7 +103,7 @@ export class CommandDialogs implements IDialogBase {
         ]);
     }
 
-    private async atualizarToken(session, results, revokeAccess = false) : boolean {
+    private async atualizarToken(session, results, revokeAccess = false): Promise<boolean> {
         const [err, result] = await to(this.createAccessToken(session, revokeAccess));
 
         if (result.success) {

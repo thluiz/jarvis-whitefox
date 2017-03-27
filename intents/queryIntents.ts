@@ -3,6 +3,9 @@ import * as builder from "botbuilder";
 import { IteratorService } from "../domain/services/service";
 import { UtilsService } from "../domain/services/utilsService";
 import { IntentBase } from "./intentBase";
+import { IntentEntities } from "./intentEntities";
+
+const IE = new IntentEntities();
 
 export class QueryIntents extends IntentBase {
     private Locations = {
@@ -32,25 +35,19 @@ export class QueryIntents extends IntentBase {
                     return;
                 }
 
-                const locations = builder.EntityRecognizer.findAllEntities(args.entities, "location");
-                const restrictions = builder.EntityRecognizer.findAllEntities(args.entities, "command_or_target");
-                const text = builder.EntityRecognizer.findAllEntities(args.entities, "text");
+                const locations = builder.EntityRecognizer.findAllEntities(args.entities, IE.Location);
+                const projectOrBCs = builder.EntityRecognizer.findAllEntities(args.entities, IE.ProjectBillingCenter);
+                const restrictions = builder.EntityRecognizer.findAllEntities(args.entities, IE.Target);
+                const text = builder.EntityRecognizer.findAllEntities(args.entities, IE.Text);
 
-                let bt: boolean = this.has_at_least_one(this.Restrictions.bt, restrictions);
-                let poliedro: boolean = this.has_at_least_one(this.Restrictions.poliedro, restrictions);
-                let own: boolean = this.has_at_least_one(this.Restrictions.own, restrictions);
+                let bt: boolean = this.has_at_least_one(this.Restrictions.bt, projectOrBCs);
+                let poliedro: boolean = this.has_at_least_one(this.Restrictions.poliedro, projectOrBCs);
 
-                let projects: string[] = this.extract_projects(restrictions);
-
-                if (this.has_at_least_one(this.Locations.monitoring, locations)) {
-                    session.endDialog("Em breve poderei listar os acompanhamentos...");
-                    return;
-                }
-
+                let projects: string[] = this.extract_projects(projectOrBCs);
                 let billingCenters = this.setup_billing_centers(bt, poliedro);
 
                 session.sendTyping();
-                const [ err, results ] = await to(IteratorService.Search(session.userData.user, own, projects,
+                const [ err, results ] = await to(IteratorService.Search(session.userData.user, false, projects,
                                                     this.setup_billing_centers(bt, poliedro),
                                                     this.setup_locations(locations),
                                                     text.map((t) => { return t.entity; }).join(" ")));

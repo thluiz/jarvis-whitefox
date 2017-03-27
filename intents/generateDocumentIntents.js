@@ -3,6 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const builder = require("botbuilder");
 const utilsService_1 = require("../domain/services/utilsService");
 const intentBase_1 = require("./intentBase");
+const intentEntities_1 = require("./intentEntities");
+const IE = new intentEntities_1.IntentEntities();
 class GenerateDocumentIntents extends intentBase_1.IntentBase {
     constructor() {
         super(...arguments);
@@ -15,7 +17,7 @@ class GenerateDocumentIntents extends intentBase_1.IntentBase {
         const self = this;
         dialog.matches("generate_document", [
             (session, args, next) => {
-                const documentType = builder.EntityRecognizer.findEntity(args.entities, "document_type");
+                const documentType = builder.EntityRecognizer.findEntity(args.entities, IE.DocumentType);
                 if (!documentType) {
                     session.send("Desculpe, acho que não entendi o que você falou.");
                     session.send("Somente podemos gerar números de CPF e CNPJ por enquanto.");
@@ -28,7 +30,7 @@ class GenerateDocumentIntents extends intentBase_1.IntentBase {
                     return;
                 }
                 let formatting = { withDashs: true, withDots: true, withSlashs: true, withFluffy: false };
-                builder.EntityRecognizer.findAllEntities(args.entities, "formatting").forEach((result) => {
+                builder.EntityRecognizer.findAllEntities(args.entities, IE.Details).forEach((result) => {
                     formatting = self.setFormatting(formatting, result);
                 });
                 const document = documentType.entity === this.DocumentTypes.CPF ?

@@ -179,7 +179,7 @@ class RegisterActivityDialogs {
                 }
             }),
         ]);
-        bot.dialog("/confirmActivityCreation", [(session, args, next) => __awaiter(this, void 0, void 0, function* () {
+        bot.dialog("/confirmActivityCreation", [(session, args) => __awaiter(this, void 0, void 0, function* () {
                 if (args.activity) {
                     session.dialogData.activity = args.activity;
                 }
@@ -200,7 +200,7 @@ class RegisterActivityDialogs {
                     `Complexidades: ${activity.complexity}; \n\n` +
                     `Tarefa: ${activity.taskId} - ${activity.taskName}.`);
                 builder.Prompts.choice(session, "Escolha uma opção: ", options, { listStyle: builder.ListStyle.list });
-            }), (session, results, next) => {
+            }), (session, results) => {
                 if (results.response.entity === this.OptionOk
                     || results.response.entity === this.OptionTryAgain) {
                     session.dialogData.activity.changed = false;

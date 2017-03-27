@@ -12,6 +12,8 @@ const await_to_js_1 = require("await-to-js");
 const builder = require("botbuilder");
 const service_1 = require("../domain/services/service");
 const intentBase_1 = require("./intentBase");
+const intentEntities_1 = require("./intentEntities");
+const IE = new intentEntities_1.IntentEntities();
 class RegisterActivityIntents extends intentBase_1.IntentBase {
     setup(dialog) {
         dialog.matches("register_activity", [
@@ -19,16 +21,16 @@ class RegisterActivityIntents extends intentBase_1.IntentBase {
                 if (!session.userData.user
                     || !session.userData.user.id
                     || session.userData.user.id <= 0) {
-                    // tslint:disable-next-line:max-line-length
-                    session.send("Antes de lançar tarefas preciso ter certeza de quem é você no Iterator. Depois que você logar poderemos criar tarefas para você, ok?");
+                    session.send("Antes de lançar tarefas preciso ter certeza de quem é você no Iterator." +
+                        "Depois que você logar poderemos criar tarefas para você, ok?");
                     session.replaceDialog("/profile");
                     return;
                 }
-                const title = builder.EntityRecognizer.findEntity(args.entities, "text");
-                const complexity = builder.EntityRecognizer.findEntity(args.entities, "complexity");
-                const taskid = builder.EntityRecognizer.findEntity(args.entities, "entityId");
-                const taskname = builder.EntityRecognizer.findEntity(args.entities, "command_or_target");
-                const project = builder.EntityRecognizer.findEntity(args.entities, "location");
+                const title = builder.EntityRecognizer.findEntity(args.entities, IE.Text);
+                const complexity = builder.EntityRecognizer.findEntity(args.entities, IE.Complexity);
+                const taskid = builder.EntityRecognizer.findEntity(args.entities, IE.EntityId);
+                const taskname = builder.EntityRecognizer.findEntity(args.entities, IE.Target);
+                const project = builder.EntityRecognizer.findEntity(args.entities, IE.Location);
                 let activity = {
                     complexity: complexity && complexity.entity ?
                         service_1.IteratorService.convertComplexity2Number(complexity.entity) : undefined,

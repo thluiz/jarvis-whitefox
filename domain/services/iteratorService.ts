@@ -17,6 +17,12 @@ export class IteratorService implements IService {
         const two = /(2|dois|duas)/;
         const three = /(3|tres|três)/;
 
+        const five = /(5|cinco)/;
+
+        const eight = /(8|oito)/;
+
+        const thirteen = /(13|treze)/;
+
         if (half.test(complexity)) {
             return 0.5;
         }
@@ -33,7 +39,21 @@ export class IteratorService implements IService {
             return 3;
         }
 
-        return 0;
+        if (five.test(complexity)) {
+            return 5;
+        }
+
+        if (eight.test(complexity)) {
+            return 8;
+        }
+
+        if (thirteen.test(complexity)) {
+            return 13;
+        }
+
+        const parsed = parseInt(complexity, 10);
+
+        return isNaN(parsed) ? 0 : parsed;
     }
 
     public static async ValidateProjectForNewTask(user: Domain.User, projectId: number) {

@@ -15,121 +15,30 @@ export class RegisterTaskDialogs implements IDialogBase {
     private OptionTryAgain = "Por favor, tente novamente...";
     private OptionChangeTitle = "Alterar o título";
     private OptionChangeComplexity = "Alterar a complexidade";
-    private OptionChangeTask = "Alterar o projeto";
+    private OptionChangeProject = "Alterar o projeto";
+    private OptionChangeArea = "Alterar Área";
+    private OptionChangeDescription = "Alterar Descrição";
     private OptionCancel = "Melhor cancelar, depois tento novamente";
 
     private confirmationOptions = [
         this.OptionOk,
         this.OptionChangeTitle,
         this.OptionChangeComplexity,
-        this.OptionChangeTask,
+        this.OptionChangeProject,
+        this.OptionChangeArea,
+        this.OptionChangeDescription,
         this.OptionCancel,
     ];
 
     public setup(bot: builder.UniversalBot): void {
-        bot.dialog("/getTaskTitle", [(session, args, next) => {
+        bot.dialog("/confirmTaskCreation", [(session, args) => {
             if (args.task) {
                 session.dialogData.task = args.task;
             }
 
-            if (session.dialogData.task.title && session.dialogData.task.title.length >= 3) {
-                next();
-            } else {
-                builder.Prompts.text(session, !args.retry ?
-                    "Por favor, poderia informar o título da tarefa?"
-                    : "Informe ao menos 3 caracteres para o título da tarefa: ");
-            }
-        }, (session, results, next) => {
-            if (results.response && results.response.length <= 3) {
-                session.replaceDialog("/getTaskTitle",
-                    { task: session.dialogData.task, retry: true });
-                return;
-            }
-
-            session.dialogData.task.title = results.response;
-            next(<builder.IDialogResult<Task>>{ task: session.dialogData.task });
-        }],
-        );
-
-        bot.dialog("/getTaskComplexity", [(session, args, next) => {
-            if (args.task) {
-                session.dialogData.task = args.task;
-            }
-
-            if (session.dialogData.task.complexity
-                && session.dialogData.task.complexity > 0) {
-                next();
-            } else {
-                builder.Prompts.text(session, !args.retry ?
-                    "Por favor, poderia informar a complexidade da tarefa?"
-                    : "Não entendi, a complexidade precisa ser meio(a), 0.5, 1, 2 ou 3. Poderia informar? ");
-            }
-        }, (session, results, next) => {
-            if (results.response) {
-                const complexity = IteratorService.convertComplexity2Number(results.response);
-                if (complexity <= 0) {
-                    session.replaceDialog("/getTaskComplexity",
-                        { task: session.dialogData.task, retry: true });
-                    return;
-                }
-                session.dialogData.task.complexity = complexity;
-            }
-
-            next(<builder.IDialogResult<Task>>{ task: session.dialogData.task });
-        }],
-        );
-
-        bot.dialog("/getTaskProjectId", [async (session, args, next) => {
-            if (args.task) {
-                session.dialogData.task = args.task;
-            }
-
-            if (!session.dialogData.task.projectId) {
-                builder.Prompts.number(session, !args.retry ?
-                    "Poderia informar em qual tarefa devo lançar as complexidades?"
-                    // tslint:disable-next-line:max-line-length
-                    : "Informe outra tarefa para que eu possa lançar, se quiser cancelar, é só informar \"0\" que encerramos esse cadastro");
-            } else {
-                next();
-            }
-        },
-        async (session, results, next) => {
-            if (results.response >= 0) {
-                const projectId = parseInt(results.response, 10);
-                if (projectId === 0) {
-                    session.send("Ok! depois tentamos novamente...");
-                    session.clearDialogStack();
-                    return;
-                }
-                session.dialogData.task.taskId = projectId;
-            }
-
-            session.send("Ok, validando a tarefa escolhida...");
-            session.sendTyping();
-            const [err, validationResult] = await to(IteratorService.ValidateProjectForNewTask(
-                session.userData.user, session.dialogData.task.projectId));
-
-            if (validationResult.success) {
-                next(<builder.IDialogResult<Task>> { task: session.dialogData.task });
-            } else {
-                session.dialogData.task.projectId = undefined;
-                session.send("hum... esse projeto está com o seguinte problema:" +
-                    (validationResult.message || err.message));
-
-                session.replaceDialog("/getTaskProjectId",
-                    { task: session.dialogData.task, retry: true });
-            }
-        },
-        ]);
-
-        bot.dialog("/confirmTaskCreation", [(session, args, next) => {
-            if (args.task) {
-                session.dialogData.task = args.task;
-            }
-
-            const task = <Task>session.dialogData.task;
+            const task = <Task> session.dialogData.task;
             // tslint:disable-next-line:max-line-length
-            let msg = "Hum, deixe-me ver... Já tenho o que preciso para cadastrar sua atividade, apenas confirme os dados: \n\n";
+            let msg = "Já tenho o que preciso para essa Tarefa, apenas confirme os dados: \n\n";
             let options = this.confirmationOptions;
 
             if (args.errorOnSave) {
@@ -137,18 +46,25 @@ export class RegisterTaskDialogs implements IDialogBase {
                 options[0] = this.OptionTryAgain;
             }
 
-            session.send(msg +
+            msg = msg +
                 `Título: ${task.title}; \n\n` +
                 `Complexidades: ${task.complexity}; \n\n` +
-                `Projeto: ${task.projectName}.`);
+                `Projeto: ${task.projectName}.\n\n` +
+                `Area: ${task.areaName || "Não definida"}`;
+
+            if (task.description && task.description.length > 0) {
+                msg = msg + `\n\nDescrição: ${task.description[0]}`;
+            }
+
+            session.send(msg);
 
             builder.Prompts.choice(session, "Escolha uma opção: ", options,
                 { listStyle: builder.ListStyle.list });
-        }, (session, results, next) => {
+        }, (session, results) => {
             if (results.response.entity === this.OptionOk
                 || results.response.entity === this.OptionTryAgain) {
                 session.dialogData.task.changed = false;
-                next(<builder.IDialogResult<Task>>{ task: session.dialogData.task });
+                session.endDialogWithResult({ response: { task: session.dialogData.task }});
                 return;
             }
 
@@ -168,11 +84,30 @@ export class RegisterTaskDialogs implements IDialogBase {
                 return;
             }
 
-            if (results.response.entity === this.OptionChangeTask) {
+            if (results.response.entity === this.OptionChangeProject) {
                 session.dialogData.task.changed = true;
-                session.dialogData.task.taskId = undefined;
-                session.beginDialog("/getTaskProjectId",
-                    { task: session.dialogData.task, retry: false });
+                let task = <Task> session.dialogData.task;
+                task.projectId = undefined;
+                task.projectName = undefined;
+
+                session.beginDialog("/getTaskProject", { task , retry: false }); // TODO: implement
+                return;
+            }
+
+            if (results.response.entity === this.OptionChangeArea) {
+                session.dialogData.task.changed = true;
+                let task = <Task> session.dialogData.task;
+                task.areaId = undefined;
+                task.areaName = undefined;
+                session.beginDialog("/getTaskArea", { task, retry: false }); // TODO: implement
+                return;
+            }
+
+            if (results.response.entity === this.OptionChangeDescription) {
+                session.dialogData.task.changed = true;
+                let task = <Task> session.dialogData.task;
+                task.description = undefined;
+                session.beginDialog("/getTaskDescription", { task, retry: false }); // TODO: implement
                 return;
             }
 
@@ -183,7 +118,7 @@ export class RegisterTaskDialogs implements IDialogBase {
             }
         },
         (session, results, next) => {
-            if (results.task) {
+            if (results.response && results.response.task) {
                 session.dialogData.task = results.task;
             }
 
@@ -192,7 +127,7 @@ export class RegisterTaskDialogs implements IDialogBase {
                 return;
             }
 
-            next(<builder.IDialogResult<Task>>{ task: session.dialogData.task });
+            session.endDialogWithResult({ response: {task: session.dialogData.task }});
         }],
         );
     }

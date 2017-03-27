@@ -16,7 +16,9 @@ const service_1 = require("../domain/services/service");
 const funnyMessages_1 = require("../domain/services/templates/funnyMessages");
 const sqlParameter_1 = require("../domain/sqlParameter");
 const intentBase_1 = require("./intentBase");
+const intentEntities_1 = require("./intentEntities");
 const IR = new iteratorBaseRepository_1.IteratorBaseRepository();
+const IE = new intentEntities_1.IntentEntities();
 class GeneralIntents extends intentBase_1.IntentBase {
     constructor() {
         super(...arguments);
@@ -38,8 +40,8 @@ class GeneralIntents extends intentBase_1.IntentBase {
     setup(dialog) {
         dialog.matches("None", [
             (session, args, next) => {
-                const receivedCommand = builder.EntityRecognizer.findEntity(args.entities, "command_or_target");
-                const receivedText = builder.EntityRecognizer.findEntity(args.entities, "text");
+                const receivedCommand = builder.EntityRecognizer.findEntity(args.entities, IE.Command);
+                const receivedText = builder.EntityRecognizer.findEntity(args.entities, IE.Text);
                 if (!receivedCommand || !receivedCommand.entity) {
                     if (receivedText && receivedText.entity && receivedText.entity.length > 0) {
                         const responded = this.respondToSmallTalk(session, receivedText.entity);

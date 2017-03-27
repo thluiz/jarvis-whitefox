@@ -23,12 +23,17 @@ bot.endConversationAction("reset", "forcing dialog resetting..", { matches: /^en
 [new Dialogs.Commands(),
     new Dialogs.RegisterActivity()].forEach((d) => d.setup(bot));
 /*** INTENTS ***/
-[new Intents.GenerateDocument(),
-    new Intents.General(),
+[new Intents.General(),
+    new Intents.GenerateDocument(),
+    new Intents.DetailTask(),
+    new Intents.Help(),
+    new Intents.ProjectPace(),
+    new Intents.Query(),
+    new Intents.QueryTask(),
     new Intents.RegisterActivity(),
     new Intents.RegisterTask(),
-    new Intents.Query(),
-    new Intents.Help()].forEach((intent) => intent.setup(dialog));
+    new Intents.UpdateTask(),
+    new Intents.UserPace()].forEach((intent) => intent.setup(dialog));
 /*** API ***/
 webAPI_1.WebAPI.setup(server, connector, bot);
 //# sourceMappingURL=server.js.map

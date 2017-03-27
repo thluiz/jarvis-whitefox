@@ -13,6 +13,8 @@ const builder = require("botbuilder");
 const service_1 = require("../domain/services/service");
 const utilsService_1 = require("../domain/services/utilsService");
 const intentBase_1 = require("./intentBase");
+const intentEntities_1 = require("./intentEntities");
+const IE = new intentEntities_1.IntentEntities();
 class QueryIntents extends intentBase_1.IntentBase {
     constructor() {
         super(...arguments);
@@ -40,20 +42,16 @@ class QueryIntents extends intentBase_1.IntentBase {
                 if (!this.checkUserLogedIn(session, "Para realizar as consultas, preciso saber quem é você, ok? ")) {
                     return;
                 }
-                const locations = builder.EntityRecognizer.findAllEntities(args.entities, "location");
-                const restrictions = builder.EntityRecognizer.findAllEntities(args.entities, "command_or_target");
-                const text = builder.EntityRecognizer.findAllEntities(args.entities, "text");
-                let bt = this.has_at_least_one(this.Restrictions.bt, restrictions);
-                let poliedro = this.has_at_least_one(this.Restrictions.poliedro, restrictions);
-                let own = this.has_at_least_one(this.Restrictions.own, restrictions);
-                let projects = this.extract_projects(restrictions);
-                if (this.has_at_least_one(this.Locations.monitoring, locations)) {
-                    session.endDialog("Em breve poderei listar os acompanhamentos...");
-                    return;
-                }
+                const locations = builder.EntityRecognizer.findAllEntities(args.entities, IE.Location);
+                const projectOrBCs = builder.EntityRecognizer.findAllEntities(args.entities, IE.ProjectBillingCenter);
+                const restrictions = builder.EntityRecognizer.findAllEntities(args.entities, IE.Target);
+                const text = builder.EntityRecognizer.findAllEntities(args.entities, IE.Text);
+                let bt = this.has_at_least_one(this.Restrictions.bt, projectOrBCs);
+                let poliedro = this.has_at_least_one(this.Restrictions.poliedro, projectOrBCs);
+                let projects = this.extract_projects(projectOrBCs);
                 let billingCenters = this.setup_billing_centers(bt, poliedro);
                 session.sendTyping();
-                const [err, results] = yield await_to_js_1.default(service_1.IteratorService.Search(session.userData.user, own, projects, this.setup_billing_centers(bt, poliedro), this.setup_locations(locations), text.map((t) => { return t.entity; }).join(" ")));
+                const [err, results] = yield await_to_js_1.default(service_1.IteratorService.Search(session.userData.user, false, projects, this.setup_billing_centers(bt, poliedro), this.setup_locations(locations), text.map((t) => { return t.entity; }).join(" ")));
                 if (err || !results.success) {
                     session.endDialog(`Ocorreu o seguinte erro: ${results.message || err.message}`);
                     return;

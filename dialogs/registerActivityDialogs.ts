@@ -101,7 +101,7 @@ export class RegisterActivityDialogs implements IDialogBase {
             builder.Prompts.text(session, q + "\n\nVocê também pode informar 0 " +
                 "ou cancelar que encerramos esse cadastro agora");
         }, (session, results) => {
-            if (parseInt(results.response, 10) === 0 || (<string>results.response).toLowerCase() === "cancelar") {
+            if (parseInt(results.response, 10) === 0 || (<string> results.response).toLowerCase() === "cancelar") {
                 session.endConversation("Ok, depois continuamos então");
                 return;
             }
@@ -123,7 +123,7 @@ export class RegisterActivityDialogs implements IDialogBase {
                 session.dialogData.activity = args.activity;
             }
 
-            let activity = <Activity>session.dialogData.activity;
+            let activity = <Activity> session.dialogData.activity;
 
             if (activity.taskId && activity.taskId > 0) {
                 return;
@@ -219,12 +219,12 @@ export class RegisterActivityDialogs implements IDialogBase {
         },
         ]);
 
-        bot.dialog("/confirmActivityCreation", [async (session, args, next) => {
+        bot.dialog("/confirmActivityCreation", [async (session, args) => {
             if (args.activity) {
                 session.dialogData.activity = args.activity;
             }
 
-            const activity = <Activity>session.dialogData.activity;
+            const activity = <Activity> session.dialogData.activity;
             // tslint:disable-next-line:max-line-length
             let msg = "Hum, deixe-me ver... Já tenho o que preciso para cadastrar sua atividade, apenas confirme os dados: \n\n";
             let options = this.confirmationOptions;
@@ -248,7 +248,7 @@ export class RegisterActivityDialogs implements IDialogBase {
             builder.Prompts.choice(session, "Escolha uma opção: ", options,
                 { listStyle: builder.ListStyle.list });
 
-        }, (session, results, next) => {
+        }, (session, results) => {
             if (results.response.entity === this.OptionOk
                 || results.response.entity === this.OptionTryAgain) {
                 session.dialogData.activity.changed = false;

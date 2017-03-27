@@ -1,6 +1,9 @@
 import * as builder from "botbuilder";
 import { IFormattingOptions, UtilsService } from "../domain/services/utilsService";
 import { IntentBase } from "./intentBase";
+import { IntentEntities } from "./intentEntities";
+
+const IE = new IntentEntities();
 
 export class GenerateDocumentIntents extends IntentBase {
 
@@ -13,7 +16,7 @@ export class GenerateDocumentIntents extends IntentBase {
         const self: GenerateDocumentIntents = this;
         dialog.matches("generate_document", [
             (session, args, next) => {
-                const documentType = builder.EntityRecognizer.findEntity(args.entities, "document_type");
+                const documentType = builder.EntityRecognizer.findEntity(args.entities, IE.DocumentType);
 
                 if (!documentType) {
                     session.send("Desculpe, acho que não entendi o que você falou.");
@@ -29,7 +32,7 @@ export class GenerateDocumentIntents extends IntentBase {
                 }
 
                 let formatting = { withDashs: true, withDots: true, withSlashs: true, withFluffy: false };
-                builder.EntityRecognizer.findAllEntities(args.entities, "formatting").forEach((result) => {
+                builder.EntityRecognizer.findAllEntities(args.entities, IE.Details).forEach((result) => {
                     formatting = self.setFormatting(formatting, result);
                 });
 

@@ -1,5 +1,6 @@
 .env
 sql
+.vs
 
 # Logs
 logs
