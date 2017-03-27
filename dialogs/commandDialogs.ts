@@ -28,7 +28,7 @@ export class CommandDialogs implements IDialogBase {
             const [err, commands] = await to(SecurityService.getAvailableCommands(session.userData.user));
 
             if (err || !commands.success) {
-                session.endDialog(`Ocorreu o seguinte erro ao consultar o [help]: ${commands.message || err.message}`);
+                session.endDialog(`Ocorreu o seguinte erro ao consultar o [help]: ${ (commands || err).message }`);
                 return;
             }
 
@@ -42,7 +42,7 @@ export class CommandDialogs implements IDialogBase {
             const [err, msg] = await to(SecurityService.getWelcomeMessage(data.user));
             if (err || !msg.success) {
                 session.endDialog(`Ocorreu o seguinte erro ao salvar os dados do seu acesso:` +
-                `${ msg.message || err.message }`);
+                `${ (msg || err).message }`);
             }
             session.endDialog(msg.data);
         });
@@ -111,7 +111,7 @@ export class CommandDialogs implements IDialogBase {
             return true;
         }
 
-        session.endDialog(`Ocorreu algum erro no token, por favor, acione o suporte: ${result.message || err.message}`);
+        session.endDialog(`Ocorreu algum erro no token, por favor, acione o suporte: ${ (result || err).message }`);
         return false;
     };
 
@@ -124,7 +124,7 @@ export class CommandDialogs implements IDialogBase {
         session.sendTyping();
         const [ errLogin, tokenResult] = await to(SecurityService.createLoginRequest(email, responseAdress));
         if (errLogin || !tokenResult.success) {
-            return Result.Fail<any>(tokenResult.message || errLogin.message);
+            return Result.Fail<any>( (tokenResult || errLogin).message );
         }
 
         session.send(`Token criado, enviando email de liberação para ${email}...`);

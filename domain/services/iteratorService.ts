@@ -1,6 +1,7 @@
 import to from "await-to-js";
 import * as http from "http";
 import { Result } from "../../domain/result";
+import { Activity } from "../entities";
 import * as Domain from "../entities";
 import { List } from "../list";
 import { IteratorBaseRepository } from "../repositories/iteratorBaseRepository";
@@ -10,6 +11,79 @@ import { IService } from "./service";
 const IR = new IteratorBaseRepository();
 
 export class IteratorService implements IService {
+
+    public static async getTaskComplexities(user: Domain.User, task: Domain.Task): Promise<Result<Domain.Task>> {
+        const result = task;
+
+        const [err, complexities] = await to(IR.executeSP("GetTaskComplexities",
+            (e) => { return e; },
+            SQLParameter.Int("userId", user.id),
+            SQLParameter.Int("taskId", task.id),
+        ));
+
+        if (err || !complexities.success) {
+            return Result.Fail<Domain.Task>((err || complexities).message);
+        }
+
+        result.complexity = complexities.data.complexity;
+        result.complexityDone = complexities.data.complexityDone;
+
+        return Result.Ok(result);
+    }
+
+    public static async getTaskEvidences(user: Domain.User, task: Domain.Task): Promise<Result<Domain.Task>> {
+        const result = task;
+
+        const [err, evidences] = await to(IR.executeSP("GetTaskEvidences",
+            (r) => { return r.results; },
+            SQLParameter.Int("userId", user.id),
+            SQLParameter.Int("taskId", task.id),
+        ));
+
+        if (err || !evidences.success) {
+            return Result.Fail<Domain.Task>((err || evidences).message);
+        }
+
+        result.evidences = evidences.data ? evidences.data.map((m) => m.evidence) : [];
+
+        return Result.Ok(result);
+    }
+
+    public static async getTaskDescriptions(user: Domain.User, task: Domain.Task): Promise<Result<Domain.Task>> {
+        const result = task;
+
+        const [err, descriptions] = await to(IR.executeSP("GetTaskDescriptions",
+            (r) => { return r.results; },
+            SQLParameter.Int("userId", user.id),
+            SQLParameter.Int("taskId", task.id),
+        ));
+
+        if (err || !descriptions.success) {
+            return Result.Fail<Domain.Task>((err || descriptions).message);
+        }
+
+        result.description = descriptions.data ? descriptions.data.map((m) => m.description) : [];
+
+        return Result.Ok(result);
+    }
+
+    public static async getTaskActivities(user: Domain.User, task: Domain.Task): Promise<Result<Domain.Task>> {
+        const result = task;
+
+        const [err, activities] = await to(IR.executeSP("GetTaskActivities",
+            (r) => { return Activity.serializeAll(r.results); },
+            SQLParameter.Int("userId", user.id),
+            SQLParameter.Int("taskId", task.id),
+        ));
+
+        if (err || !activities.success) {
+            return Result.Fail<Domain.Task>((err || activities).message);
+        }
+
+        result.activities = activities.data;
+
+        return Result.Ok(result);
+    }
 
     public static convertComplexity2Number(complexity: string): number {
         const half = /(0.5|meio|meia|0\ .\ 5|0\,5|0\ \,\ 5)/;
@@ -56,19 +130,19 @@ export class IteratorService implements IService {
         return isNaN(parsed) ? 0 : parsed;
     }
 
-    public static async ValidateProjectForNewTask(user: Domain.User, projectId: number) {
+    public static async validateProjectForNewTask(user: Domain.User, projectId: number) {
         return IR.executeSPNoResult("ValidateProjectForNewItemBacklog",
             SQLParameter.Int("userId", user.id), SQLParameter.Int("projectId", projectId),
         );
     }
 
-    public static async ValidateTaskForNewActivity(user: Domain.User, itemBacklogId: number) {
+    public static async validateTaskForNewActivity(user: Domain.User, itemBacklogId: number) {
         return IR.executeSPNoResult("ValidateItemBacklogForNewActivity",
             SQLParameter.Int("userId", user.id), SQLParameter.Int("itemBacklogId", itemBacklogId),
         );
     }
 
-    public static async Search(user: Domain.User, onlyOwn: boolean,
+    public static async search(user: Domain.User, onlyOwn: boolean,
                                projects: string[], billingCenters: string[],
                                locations: string[], text: string,
                                maxItens: number = 30): Promise<Result<any[]>> {

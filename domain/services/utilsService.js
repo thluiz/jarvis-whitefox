@@ -2,7 +2,41 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const sprintf_js_1 = require("sprintf-js");
 const funnyMessages_1 = require("./templates/funnyMessages");
+const LocationsRegExps = {
+    activity: /^(atividade|lançamento)/,
+    all: /^(tudo|tod(o|a))/,
+    backlog: /^(backlog|(n|d)o\ backlog|(tarefa(s)?|ite(ns|m))\ (d|n)o\ backlog)/,
+    closedIncident: /^((chamado(s)?)\ fechado)/,
+    closedTasks: /^(tarefa(s)?(\ fechada| conclu(í|i)da))/,
+    monitoring: /^(acompanhamento|andamento)/,
+    openIncident: /^((chamado(s)?(\ aberto)?)|incidente)/,
+    openTasks: /^(tarefa(s)?(\ aberta)?)/,
+};
+const ProjectsRegExp = /^(procam|classon|edros|portal|p\+|p\ \+)/;
+const BillingCentersRegExps = {
+    bt: /^(bt|b\&t|b\ \&\ t|bet)/,
+    poliedro: /^(poliedro)/,
+};
 class UtilsService {
+    static extract_projects(restrictions) {
+        let r = restrictions.filter((e) => {
+            return ProjectsRegExp.test(e.entity);
+        }).map((e) => {
+            if (/^p\ \+|p\+/.test(e.entity)) {
+                return "p+ (sites e apis)";
+            }
+            else {
+                return e.entity;
+            }
+        });
+        return r;
+    }
+    static has_billingcenter_bt(entities) {
+        return UtilsService.has_at_least_one(BillingCentersRegExps.bt, entities);
+    }
+    static has_billingcenter_poliedro(entities) {
+        return UtilsService.has_at_least_one(BillingCentersRegExps.poliedro, entities);
+    }
     static randomNumber(n) {
         return Math.round(Math.random() * n);
     }
@@ -13,6 +47,57 @@ class UtilsService {
             text += possible.charAt(Math.floor(Math.random() * possible.length));
         }
         return text;
+    }
+    static getLocationTitle(type) {
+        switch (type) {
+            case "openTask":
+                return "Tarefas Abertas";
+            case "openTask":
+                return "Tarefas Abertas";
+            case "closedTask":
+                return "Tarefas Fechadas";
+            case "backlog":
+                return "Backlog";
+            case "openIncident":
+                return "Chamados Abertos";
+            case "closedIncident":
+                return "Chamados Fechados";
+            default:
+                return "";
+        }
+    }
+    static setup_locations(locations) {
+        let list = [];
+        if (!locations || locations.length === 0) {
+            return ["openTask"];
+        }
+        if (UtilsService.has_at_least_one(LocationsRegExps.all, locations)) {
+            list.push("openTask", "closedTask", "backlog", "openincident", "closedincident");
+            return list;
+        }
+        if (UtilsService.has_at_least_one(LocationsRegExps.closedTasks, locations)) {
+            locations = UtilsService.remove_all(LocationsRegExps.closedTasks, locations);
+            list.push("closedTask");
+        }
+        if (UtilsService.has_at_least_one(LocationsRegExps.backlog, locations)) {
+            locations = UtilsService.remove_all(LocationsRegExps.backlog, locations);
+            list.push("backlog");
+        }
+        if (UtilsService.has_at_least_one(LocationsRegExps.openTasks, locations)) {
+            locations = UtilsService.remove_all(LocationsRegExps.openTasks, locations);
+            list.push("openTask");
+        }
+        if (UtilsService.has_at_least_one(LocationsRegExps.closedIncident, locations)) {
+            list.push("closedincident");
+        }
+        if (UtilsService.has_at_least_one(LocationsRegExps.openIncident, locations)) {
+            locations = UtilsService.remove_all(LocationsRegExps.openIncident, locations);
+            list.push("openincident");
+        }
+        if (UtilsService.has_at_least_one(LocationsRegExps.activity, locations)) {
+            list.push("activity");
+        }
+        return list;
     }
     // tslint:disable-next-line:max-line-length
     static generateCNPJ(formatting = { withDashs: true, withSlashs: true, withDots: true, withFluffy: false }) {
@@ -81,6 +166,33 @@ class UtilsService {
     }
     static getRandomItemFromArray(items) {
         return items[Math.floor(Math.random() * items.length)];
+    }
+    static setup_billing_centers(bt, poliedro) {
+        let billingCenters = [];
+        if (bt) {
+            billingCenters.push("B&T Corretora");
+        }
+        if (poliedro) {
+            billingCenters.push("poliedro");
+        }
+        return billingCenters;
+    }
+    static remove_all(regexp, entities) {
+        let resp = [];
+        entities.forEach((e) => {
+            if (!regexp.test(e.entity)) {
+                resp.push(e);
+            }
+        });
+        return resp;
+    }
+    static has_at_least_one(regexp, entities) {
+        for (let e of entities) {
+            if (regexp.test(e.entity)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
 exports.UtilsService = UtilsService;

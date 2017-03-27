@@ -104,7 +104,7 @@ export class GeneralIntents extends IntentBase {
         const [err, result] = await to(IteratorService.updateIncidents());
 
         if (err || !result.success) {
-            session.endDialog(`Ops! aconteceu algum erro: ${err.message || result.message || "Não definido"}`);
+            session.endDialog(`Ops! aconteceu algum erro: ${ (err || result).message || "Não definido"}`);
         } else {
             session.endDialog(`Ok! chamados atualizados no iterator!`);
         }
@@ -117,7 +117,7 @@ export class GeneralIntents extends IntentBase {
             SQLParameter.Int("billingCenterId", Constants.BillingCenterBT)));
 
         if (err || !result.success) {
-            session.endDialog(`Ops! aconteceu algum erro: ${err.message || result.message || "Não definido"}`);
+            session.endDialog(`Ops! aconteceu algum erro: ${ (err || result).message || "Não definido"}`);
         } else {
             session.endDialog(`Ok! acompanhamento atualizado!`);
         }

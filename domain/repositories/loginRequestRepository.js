@@ -18,7 +18,7 @@ class LoginRequestRepository extends securityBaseRepository_1.SecurityBaseReposi
         return __awaiter(this, void 0, void 0, function* () {
             const [err, request] = yield await_to_js_1.default(this.executeSPNoResult("CreateLoginRequest", sqlParameter_1.SQLParameter.NVarChar("token", token, 30), sqlParameter_1.SQLParameter.NVarChar("temporaryToken", temporaryToken, 30), sqlParameter_1.SQLParameter.NVarChar("email", email, 80), sqlParameter_1.SQLParameter.JSON("details", responseAddress)));
             if (err || !request.success) {
-                return result_1.Result.Fail(request.message || err.message);
+                return result_1.Result.Fail((request || err).message);
             }
             return result_1.Result.Ok();
         });

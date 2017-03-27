@@ -24,7 +24,9 @@ bot.endConversationAction("reset", "forcing dialog resetting..", { matches: /^en
 
 /*** DIALOGS ***/
 [new Dialogs.Commands(),
-new Dialogs.RegisterActivity()].forEach((d) => d.setup(bot));
+new Dialogs.CommonTaskActions(),
+new Dialogs.RegisterActivity(),
+new Dialogs.RegisterTask()].forEach((d) => d.setup(bot));
 
 /*** INTENTS ***/
 [new Intents.General(),

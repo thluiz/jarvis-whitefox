@@ -11,10 +11,56 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const await_to_js_1 = require("await-to-js");
 const http = require("http");
 const result_1 = require("../../domain/result");
+const entities_1 = require("../entities");
 const iteratorBaseRepository_1 = require("../repositories/iteratorBaseRepository");
 const sqlParameter_1 = require("../sqlParameter");
 const IR = new iteratorBaseRepository_1.IteratorBaseRepository();
 class IteratorService {
+    static getTaskComplexities(user, task) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const result = task;
+            const [err, complexities] = yield await_to_js_1.default(IR.executeSP("GetTaskComplexities", (e) => { return e; }, sqlParameter_1.SQLParameter.Int("userId", user.id), sqlParameter_1.SQLParameter.Int("taskId", task.id)));
+            if (err || !complexities.success) {
+                return result_1.Result.Fail((err || complexities).message);
+            }
+            result.complexity = complexities.data.complexity;
+            result.complexityDone = complexities.data.complexityDone;
+            return result_1.Result.Ok(result);
+        });
+    }
+    static getTaskEvidences(user, task) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const result = task;
+            const [err, evidences] = yield await_to_js_1.default(IR.executeSP("GetTaskEvidences", (r) => { return r.results; }, sqlParameter_1.SQLParameter.Int("userId", user.id), sqlParameter_1.SQLParameter.Int("taskId", task.id)));
+            if (err || !evidences.success) {
+                return result_1.Result.Fail((err || evidences).message);
+            }
+            result.evidences = evidences.data ? evidences.data.map((m) => m.evidence) : [];
+            return result_1.Result.Ok(result);
+        });
+    }
+    static getTaskDescriptions(user, task) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const result = task;
+            const [err, descriptions] = yield await_to_js_1.default(IR.executeSP("GetTaskDescriptions", (r) => { return r.results; }, sqlParameter_1.SQLParameter.Int("userId", user.id), sqlParameter_1.SQLParameter.Int("taskId", task.id)));
+            if (err || !descriptions.success) {
+                return result_1.Result.Fail((err || descriptions).message);
+            }
+            result.description = descriptions.data ? descriptions.data.map((m) => m.description) : [];
+            return result_1.Result.Ok(result);
+        });
+    }
+    static getTaskActivities(user, task) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const result = task;
+            const [err, activities] = yield await_to_js_1.default(IR.executeSP("GetTaskActivities", (r) => { return entities_1.Activity.serializeAll(r.results); }, sqlParameter_1.SQLParameter.Int("userId", user.id), sqlParameter_1.SQLParameter.Int("taskId", task.id)));
+            if (err || !activities.success) {
+                return result_1.Result.Fail((err || activities).message);
+            }
+            result.activities = activities.data;
+            return result_1.Result.Ok(result);
+        });
+    }
     static convertComplexity2Number(complexity) {
         const half = /(0.5|meio|meia|0\ .\ 5|0\,5|0\ \,\ 5)/;
         const one = /(1|um|uma)/;
@@ -47,17 +93,17 @@ class IteratorService {
         const parsed = parseInt(complexity, 10);
         return isNaN(parsed) ? 0 : parsed;
     }
-    static ValidateProjectForNewTask(user, projectId) {
+    static validateProjectForNewTask(user, projectId) {
         return __awaiter(this, void 0, void 0, function* () {
             return IR.executeSPNoResult("ValidateProjectForNewItemBacklog", sqlParameter_1.SQLParameter.Int("userId", user.id), sqlParameter_1.SQLParameter.Int("projectId", projectId));
         });
     }
-    static ValidateTaskForNewActivity(user, itemBacklogId) {
+    static validateTaskForNewActivity(user, itemBacklogId) {
         return __awaiter(this, void 0, void 0, function* () {
             return IR.executeSPNoResult("ValidateItemBacklogForNewActivity", sqlParameter_1.SQLParameter.Int("userId", user.id), sqlParameter_1.SQLParameter.Int("itemBacklogId", itemBacklogId));
         });
     }
-    static Search(user, onlyOwn, projects, billingCenters, locations, text, maxItens = 30) {
+    static search(user, onlyOwn, projects, billingCenters, locations, text, maxItens = 30) {
         return __awaiter(this, void 0, void 0, function* () {
             return IR.executeSP("Search", (r) => { return r.results; }, sqlParameter_1.SQLParameter.Int("userId", user.id), sqlParameter_1.SQLParameter.Int("maxItems", maxItens), sqlParameter_1.SQLParameter.NVarCharMax("locations", locations.join(",")), sqlParameter_1.SQLParameter.NVarCharMax("billingCenters", billingCenters.join(",")), sqlParameter_1.SQLParameter.NVarCharMax("projects", projects.join(",")), sqlParameter_1.SQLParameter.NVarChar("text", text, 180));
         });

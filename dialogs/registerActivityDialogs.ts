@@ -131,12 +131,12 @@ export class RegisterActivityDialogs implements IDialogBase {
 
             if (activity.taskName && activity.taskName.length > 0) {
                 session.sendTyping();
-                const [err, searchResult] = await to(IteratorService.Search(session.userData.user, false,
+                const [err, searchResult] = await to(IteratorService.search(session.userData.user, false,
                     [activity.project], [], ["opentask"], activity.taskName, 10));
 
                 if (err || !searchResult.success) {
                     session.endConversation("Ocorreu o seguinte erro ao buscar a tarefa:" +
-                        `\n\n\t ${searchResult.message || err.message} ` +
+                        `\n\n\t ${ (searchResult || err).message } ` +
                         "\n\n Por favor, tente novamente ou acione o suporte.");
                     return;
                 }
@@ -203,7 +203,7 @@ export class RegisterActivityDialogs implements IDialogBase {
 
             session.sendTyping();
 
-            const [err, validationResult] = await to(IteratorService.ValidateTaskForNewActivity(
+            const [err, validationResult] = await to(IteratorService.validateTaskForNewActivity(
                 session.userData.user, session.dialogData.activity.taskId));
 
             if (validationResult.success) {
@@ -211,7 +211,7 @@ export class RegisterActivityDialogs implements IDialogBase {
             } else {
                 session.dialogData.activity.taskId = undefined;
                 session.send(`hum... essa tarefa está com o seguinte problema:` +
-                    `\n\n\t ${validationResult.message || err.message}`);
+                    `\n\n\t ${ (validationResult || err).message }`);
 
                 session.replaceDialog("/getActivityTaskId",
                     { activity: session.dialogData.activity, retry: true });

@@ -93,7 +93,7 @@ class RegisterActivityIntents extends intentBase_1.IntentBase {
                 const activity = session.dialogData.activity;
                 const [err, result] = yield await_to_js_1.default(service_1.IteratorService.createActivity(session.userData.user, activity.taskId, activity.title, activity.complexity));
                 if (err || !result.success) {
-                    session.beginDialog("/confirmActivityCreation", { activity: session.dialogData.activity, errorOnSave: (result.message || err.message) });
+                    session.beginDialog("/confirmActivityCreation", { activity: session.dialogData.activity, errorOnSave: (result || err).message });
                     return;
                 }
                 session.endDialog("Atividade cadastrada com sucesso!");

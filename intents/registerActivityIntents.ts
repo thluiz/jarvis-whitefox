@@ -100,7 +100,7 @@ export class RegisterActivityIntents extends IntentBase {
 
                 if (err || !result.success) {
                     session.beginDialog("/confirmActivityCreation",
-                        { activity: session.dialogData.activity, errorOnSave: (result.message || err.message) });
+                        { activity: session.dialogData.activity, errorOnSave: (result || err).message });
                     return;
                 }
 

@@ -1,3 +1,4 @@
+import * as builder from "botbuilder";
 import { sprintf } from "sprintf-js";
 import { IService } from "./service";
 import { FunnyMessages } from "./templates/funnyMessages";
@@ -9,7 +10,48 @@ export interface IFormattingOptions {
     withFluffy: boolean;
 }
 
+const LocationsRegExps = {
+    activity: /^(atividade|lançamento)/,
+    all: /^(tudo|tod(o|a))/,
+    backlog: /^(backlog|(n|d)o\ backlog|(tarefa(s)?|ite(ns|m))\ (d|n)o\ backlog)/,
+    closedIncident: /^((chamado(s)?)\ fechado)/,
+    closedTasks: /^(tarefa(s)?(\ fechada| conclu(í|i)da))/,
+    monitoring: /^(acompanhamento|andamento)/,
+    openIncident: /^((chamado(s)?(\ aberto)?)|incidente)/,
+    openTasks: /^(tarefa(s)?(\ aberta)?)/,
+};
+
+const ProjectsRegExp =  /^(procam|classon|edros|portal|p\+|p\ \+)/;
+
+const BillingCentersRegExps = {
+    bt: /^(bt|b\&t|b\ \&\ t|bet)/,
+    poliedro: /^(poliedro)/,
+};
+
 export class UtilsService implements IService {
+
+    public static extract_projects(restrictions: builder.IEntity[]): string[] {
+        let r = restrictions.filter((e) => {
+            return ProjectsRegExp.test(e.entity);
+        }).map((e) => {
+            if (/^p\ \+|p\+/.test(e.entity)) {
+                return "p+ (sites e apis)";
+            } else {
+                return e.entity;
+            }
+        });
+
+        return r;
+    }
+
+    public static has_billingcenter_bt(entities: builder.IEntity[]): boolean {
+        return UtilsService.has_at_least_one(BillingCentersRegExps.bt, entities);
+    }
+
+    public static has_billingcenter_poliedro(entities: builder.IEntity[]): boolean {
+        return UtilsService.has_at_least_one(BillingCentersRegExps.poliedro, entities);
+    }
+
     public static randomNumber(n): number {
         return Math.round(Math.random() * n);
     }
@@ -23,6 +65,68 @@ export class UtilsService implements IService {
         }
 
         return text;
+    }
+
+    public static getLocationTitle(type) {
+        switch (type) {
+            case "openTask":
+                return "Tarefas Abertas";
+            case "openTask":
+                return "Tarefas Abertas";
+            case "closedTask":
+                return "Tarefas Fechadas";
+            case "backlog":
+                return "Backlog";
+            case "openIncident":
+                return "Chamados Abertos";
+            case "closedIncident":
+                return "Chamados Fechados";
+            default:
+                return "";
+        }
+    }
+
+    public static setup_locations(locations: builder.IEntity[]): string[] {
+        let list = [];
+
+        if (!locations || locations.length === 0) {
+            return ["openTask"];
+        }
+
+        if (UtilsService.has_at_least_one(LocationsRegExps.all, locations)) {
+            list.push("openTask", "closedTask", "backlog", "openincident", "closedincident");
+            return list;
+        }
+
+        if (UtilsService.has_at_least_one(LocationsRegExps.closedTasks, locations)) {
+            locations = UtilsService.remove_all(LocationsRegExps.closedTasks, locations);
+            list.push("closedTask");
+        }
+
+        if (UtilsService.has_at_least_one(LocationsRegExps.backlog, locations)) {
+            locations = UtilsService.remove_all(LocationsRegExps.backlog, locations);
+            list.push("backlog");
+        }
+
+        if (UtilsService.has_at_least_one(LocationsRegExps.openTasks, locations)) {
+            locations = UtilsService.remove_all(LocationsRegExps.openTasks, locations);
+            list.push("openTask");
+        }
+
+        if (UtilsService.has_at_least_one(LocationsRegExps.closedIncident, locations)) {
+            list.push("closedincident");
+        }
+
+        if (UtilsService.has_at_least_one(LocationsRegExps.openIncident, locations)) {
+            locations = UtilsService.remove_all(LocationsRegExps.openIncident, locations);
+            list.push("openincident");
+        }
+
+        if (UtilsService.has_at_least_one(LocationsRegExps.activity, locations)) {
+            list.push("activity");
+        }
+
+        return list;
     }
 
     // tslint:disable-next-line:max-line-length
@@ -61,7 +165,7 @@ export class UtilsService implements IService {
     }
 
     // tslint:disable-next-line:max-line-length
-    public static generateCPF(formatting: IFormattingOptions =  {withDashs: true, withSlashs: true, withDots: true, withFluffy: false }): string {
+    public static generateCPF(formatting: IFormattingOptions = { withDashs: true, withSlashs: true, withDots: true, withFluffy: false }): string {
         let n = 9;
         let n1 = this.randomNumber(n);
         let n2 = this.randomNumber(n);
@@ -91,5 +195,40 @@ export class UtilsService implements IService {
 
     public static getRandomItemFromArray<T>(items: T[]): T {
         return items[Math.floor(Math.random() * items.length)];
+    }
+
+    public static setup_billing_centers(bt: boolean, poliedro: boolean): string[] {
+        let billingCenters = [];
+        if (bt) {
+            billingCenters.push("B&T Corretora");
+        }
+
+        if (poliedro) {
+            billingCenters.push("poliedro");
+        }
+
+        return billingCenters;
+    }
+
+    public static remove_all(regexp: RegExp, entities: builder.IEntity[]): builder.IEntity[] {
+        let resp: builder.IEntity[] = [];
+
+        entities.forEach((e) => {
+            if (!regexp.test(e.entity)) {
+                resp.push(e);
+            }
+        });
+
+        return resp;
+    }
+
+    public static has_at_least_one(regexp: RegExp, entities: builder.IEntity[]): boolean {
+        for (let e of entities) {
+            if (regexp.test(e.entity)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

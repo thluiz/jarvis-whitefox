@@ -30,7 +30,7 @@ class CommandDialogs {
             }
             const [err, commands] = yield await_to_js_1.default(SecurityService_1.SecurityService.getAvailableCommands(session.userData.user));
             if (err || !commands.success) {
-                session.endDialog(`Ocorreu o seguinte erro ao consultar o [help]: ${commands.message || err.message}`);
+                session.endDialog(`Ocorreu o seguinte erro ao consultar o [help]: ${(commands || err).message}`);
                 return;
             }
             session.send("No momento os comandos disponíveis são: ");
@@ -42,7 +42,7 @@ class CommandDialogs {
             const [err, msg] = yield await_to_js_1.default(SecurityService_1.SecurityService.getWelcomeMessage(data.user));
             if (err || !msg.success) {
                 session.endDialog(`Ocorreu o seguinte erro ao salvar os dados do seu acesso:` +
-                    `${msg.message || err.message}`);
+                    `${(msg || err).message}`);
             }
             session.endDialog(msg.data);
         }));
@@ -105,7 +105,7 @@ class CommandDialogs {
                 session.endDialog("Email de validação enviado. Por favor, autorize o acesso às minhas funções!");
                 return true;
             }
-            session.endDialog(`Ocorreu algum erro no token, por favor, acione o suporte: ${result.message || err.message}`);
+            session.endDialog(`Ocorreu algum erro no token, por favor, acione o suporte: ${(result || err).message}`);
             return false;
         });
     }
@@ -119,7 +119,7 @@ class CommandDialogs {
             session.sendTyping();
             const [errLogin, tokenResult] = yield await_to_js_1.default(SecurityService_1.SecurityService.createLoginRequest(email, responseAdress));
             if (errLogin || !tokenResult.success) {
-                return result_1.Result.Fail(tokenResult.message || errLogin.message);
+                return result_1.Result.Fail((tokenResult || errLogin).message);
             }
             session.send(`Token criado, enviando email de liberação para ${email}...`);
             session.sendTyping();

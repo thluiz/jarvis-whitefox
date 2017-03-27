@@ -17,7 +17,7 @@ export class LoginRequestRepository extends SecurityBaseRepository {
         ));
 
         if (err || !request.success) {
-            return Result.Fail<any>(request.message || err.message);
+            return Result.Fail<any>( (request || err).message );
         }
 
         return Result.Ok();

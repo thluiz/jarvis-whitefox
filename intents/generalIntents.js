@@ -99,7 +99,7 @@ class GeneralIntents extends intentBase_1.IntentBase {
             session.sendTyping();
             const [err, result] = yield await_to_js_1.default(service_1.IteratorService.updateIncidents());
             if (err || !result.success) {
-                session.endDialog(`Ops! aconteceu algum erro: ${err.message || result.message || "Não definido"}`);
+                session.endDialog(`Ops! aconteceu algum erro: ${(err || result).message || "Não definido"}`);
             }
             else {
                 session.endDialog(`Ok! chamados atualizados no iterator!`);
@@ -112,7 +112,7 @@ class GeneralIntents extends intentBase_1.IntentBase {
             session.sendTyping();
             const [err, result] = yield await_to_js_1.default(IR.executeSPNoResult("FillFutureWorkDaysSlots", sqlParameter_1.SQLParameter.Int("billingCenterId", constants_1.Constants.BillingCenterBT)));
             if (err || !result.success) {
-                session.endDialog(`Ops! aconteceu algum erro: ${err.message || result.message || "Não definido"}`);
+                session.endDialog(`Ops! aconteceu algum erro: ${(err || result).message || "Não definido"}`);
             }
             else {
                 session.endDialog(`Ok! acompanhamento atualizado!`);

@@ -107,10 +107,10 @@ class RegisterActivityDialogs {
                 }
                 if (activity.taskName && activity.taskName.length > 0) {
                     session.sendTyping();
-                    const [err, searchResult] = yield await_to_js_1.default(iteratorService_1.IteratorService.Search(session.userData.user, false, [activity.project], [], ["opentask"], activity.taskName, 10));
+                    const [err, searchResult] = yield await_to_js_1.default(iteratorService_1.IteratorService.search(session.userData.user, false, [activity.project], [], ["opentask"], activity.taskName, 10));
                     if (err || !searchResult.success) {
                         session.endConversation("Ocorreu o seguinte erro ao buscar a tarefa:" +
-                            `\n\n\t ${searchResult.message || err.message} ` +
+                            `\n\n\t ${(searchResult || err).message} ` +
                             "\n\n Por favor, tente novamente ou acione o suporte.");
                         return;
                     }
@@ -167,14 +167,14 @@ class RegisterActivityDialogs {
                     session.dialogData.activity.taskId = taskId;
                 }
                 session.sendTyping();
-                const [err, validationResult] = yield await_to_js_1.default(iteratorService_1.IteratorService.ValidateTaskForNewActivity(session.userData.user, session.dialogData.activity.taskId));
+                const [err, validationResult] = yield await_to_js_1.default(iteratorService_1.IteratorService.validateTaskForNewActivity(session.userData.user, session.dialogData.activity.taskId));
                 if (validationResult.success) {
                     session.endDialogWithResult({ response: { activity: session.dialogData.activity } });
                 }
                 else {
                     session.dialogData.activity.taskId = undefined;
                     session.send(`hum... essa tarefa está com o seguinte problema:` +
-                        `\n\n\t ${validationResult.message || err.message}`);
+                        `\n\n\t ${(validationResult || err).message}`);
                     session.replaceDialog("/getActivityTaskId", { activity: session.dialogData.activity, retry: true });
                 }
             }),

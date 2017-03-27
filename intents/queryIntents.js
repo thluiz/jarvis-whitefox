@@ -16,25 +16,6 @@ const intentBase_1 = require("./intentBase");
 const intentEntities_1 = require("./intentEntities");
 const IE = new intentEntities_1.IntentEntities();
 class QueryIntents extends intentBase_1.IntentBase {
-    constructor() {
-        super(...arguments);
-        this.Locations = {
-            activity: /^(atividade|lançamento)/,
-            all: /^(tudo|tod(o|a))/,
-            backlog: /^(backlog|(n|d)o\ backlog|(tarefa(s)?|ite(ns|m))\ (d|n)o\ backlog)/,
-            closedIncident: /^((chamado(s)?)\ fechado)/,
-            closedTasks: /^(tarefa(s)?(\ fechada| conclu(í|i)da))/,
-            monitoring: /^(acompanhamento|andamento)/,
-            openIncident: /^((chamado(s)?(\ aberto)?)|incidente)/,
-            openTasks: /^(tarefa(s)?(\ aberta)?)/,
-        };
-        this.Restrictions = {
-            bt: /^(bt|b\&t|b\ \&\ t|bet)/,
-            own: /^(meu|minha)/,
-            poliedro: /^(poliedro)/,
-            projects: /^(procam|classon|edros|portal|p\+|p\ \+)/,
-        };
-    }
     setup(dialog) {
         dialog.matches("query", [
             (session, args, next) => __awaiter(this, void 0, void 0, function* () {
@@ -46,14 +27,13 @@ class QueryIntents extends intentBase_1.IntentBase {
                 const projectOrBCs = builder.EntityRecognizer.findAllEntities(args.entities, IE.ProjectBillingCenter);
                 const restrictions = builder.EntityRecognizer.findAllEntities(args.entities, IE.Target);
                 const text = builder.EntityRecognizer.findAllEntities(args.entities, IE.Text);
-                let bt = this.has_at_least_one(this.Restrictions.bt, projectOrBCs);
-                let poliedro = this.has_at_least_one(this.Restrictions.poliedro, projectOrBCs);
-                let projects = this.extract_projects(projectOrBCs);
-                let billingCenters = this.setup_billing_centers(bt, poliedro);
+                let bt = utilsService_1.UtilsService.has_billingcenter_bt(projectOrBCs);
+                let poliedro = utilsService_1.UtilsService.has_billingcenter_poliedro(projectOrBCs);
+                let projects = utilsService_1.UtilsService.extract_projects(projectOrBCs);
                 session.sendTyping();
-                const [err, results] = yield await_to_js_1.default(service_1.IteratorService.Search(session.userData.user, false, projects, this.setup_billing_centers(bt, poliedro), this.setup_locations(locations), text.map((t) => { return t.entity; }).join(" ")));
+                const [err, results] = yield await_to_js_1.default(service_1.IteratorService.search(session.userData.user, false, projects, utilsService_1.UtilsService.setup_billing_centers(bt, poliedro), utilsService_1.UtilsService.setup_locations(locations), text.map((t) => { return t.entity; }).join(" ")));
                 if (err || !results.success) {
-                    session.endDialog(`Ocorreu o seguinte erro: ${results.message || err.message}`);
+                    session.endDialog(`Ocorreu o seguinte erro: ${(results || err).message}`);
                     return;
                 }
                 if (!results.data) {
@@ -63,7 +43,7 @@ class QueryIntents extends intentBase_1.IntentBase {
                 let total = 0;
                 let response = "";
                 for (let d of results.data) {
-                    response += this.getLocationTitle(d.type) + ": \n\n";
+                    response += utilsService_1.UtilsService.getLocationTitle(d.type) + ": \n\n";
                     for (let i of d.items) {
                         response += ` * ${i.id} - ${i.name} \n\n`;
                         total++;
@@ -72,94 +52,6 @@ class QueryIntents extends intentBase_1.IntentBase {
                 session.send(this.get_response_text(total) + response);
             }),
         ]);
-    }
-    getLocationTitle(type) {
-        switch (type) {
-            case "openTask":
-                return "Tarefas Abertas";
-            case "openTask":
-                return "Tarefas Abertas";
-            case "closedTask":
-                return "Tarefas Fechadas";
-            case "backlog":
-                return "Backlog";
-            case "openIncident":
-                return "Chamados Abertos";
-            case "closedIncident":
-                return "Chamados Fechados";
-            default:
-                return "";
-        }
-    }
-    extract_projects(restrictions) {
-        let r = restrictions.filter((e) => {
-            return this.Restrictions.projects.test(e.entity);
-        }).map((e) => {
-            if (/^p\ \+|p\+/.test(e.entity)) {
-                return "p+ (sites e apis)";
-            }
-            else {
-                return e.entity;
-            }
-        });
-        return r;
-    }
-    setup_locations(locations) {
-        let list = [];
-        if (this.has_at_least_one(this.Locations.all, locations)) {
-            list.push("openTask", "closedTask", "backlog", "openincident", "closedincident");
-            return list;
-        }
-        if (this.has_at_least_one(this.Locations.closedTasks, locations)) {
-            locations = this.remove_all(this.Locations.closedTasks, locations);
-            list.push("closedTask");
-        }
-        if (this.has_at_least_one(this.Locations.backlog, locations)) {
-            locations = this.remove_all(this.Locations.backlog, locations);
-            list.push("backlog");
-        }
-        if (this.has_at_least_one(this.Locations.openTasks, locations)) {
-            locations = this.remove_all(this.Locations.openTasks, locations);
-            list.push("openTask");
-        }
-        if (this.has_at_least_one(this.Locations.closedIncident, locations)) {
-            list.push("closedincident");
-        }
-        if (this.has_at_least_one(this.Locations.openIncident, locations)) {
-            locations = this.remove_all(this.Locations.openIncident, locations);
-            list.push("openincident");
-        }
-        if (this.has_at_least_one(this.Locations.activity, locations)) {
-            list.push("activity");
-        }
-        return list;
-    }
-    setup_billing_centers(bt, poliedro) {
-        let billingCenters = [];
-        if (bt) {
-            billingCenters.push("B&T Corretora");
-        }
-        if (poliedro) {
-            billingCenters.push("poliedro");
-        }
-        return billingCenters;
-    }
-    remove_all(regexp, entities) {
-        let resp = [];
-        entities.forEach((e) => {
-            if (!regexp.test(e.entity)) {
-                resp.push(e);
-            }
-        });
-        return resp;
-    }
-    has_at_least_one(regexp, entities) {
-        for (let e of entities) {
-            if (regexp.test(e.entity)) {
-                return true;
-            }
-        }
-        return false;
     }
     get_response_text(total) {
         let formal = ["Encontrei os seguintes registros:",
