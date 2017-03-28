@@ -29,6 +29,14 @@ class QueryTaskIntents extends intentBase_1.IntentBase {
     setup(dialog) {
         dialog.matches("query_task", [
             (session, args, next) => __awaiter(this, void 0, void 0, function* () {
+                if (!session.userData.user
+                    || !session.userData.user.id
+                    || session.userData.user.id <= 0) {
+                    session.send("Antes de verificar dados das tarefas precisamos ter certeza de quem é você." +
+                        "Depois que você logar poderemos verificar os dados das tarefas dos seus projetos, ok?");
+                    session.replaceDialog("/profile");
+                    return;
+                }
                 const entityId = builder.EntityRecognizer.findEntity(args.entities, IE.EntityId);
                 if (entityId && entityId.entity && parseInt(entityId.entity, 10) > 0) {
                     const [errTask, task] = yield await_to_js_1.default(TR.load(parseInt(entityId.entity, 10)));
@@ -132,9 +140,9 @@ class QueryTaskIntents extends intentBase_1.IntentBase {
                 session.endDialog(`Ocorreu o seguinte erro ao obter as complexidades: ${(err || task).message}`);
                 return;
             }
-            session.send(`Complexidades da tarefa "${task.data.id} - ${task.data.title}": \n\n` +
-                `Estimada: ${task.data.complexity}; \n\n` +
-                `Realizada: ${task.data.complexityDone}. `);
+            session.send(`Complexidades da tarefa *"${task.data.id} - ${task.data.title}"*: \n\n` +
+                `* **Estimada:** ${task.data.complexity}; \n\n` +
+                `* **Realizada:** ${task.data.complexityDone};`);
         });
     }
     getTaskEvidences(session) {
@@ -145,11 +153,13 @@ class QueryTaskIntents extends intentBase_1.IntentBase {
                 return;
             }
             if (task.data.evidences.length === 0) {
-                session.endDialog(`Nenhum anexo encontrado na tarefa "${task.data.id} - ${task.data.title}"`);
+                session.endDialog(`Nenhum anexo encontrado na tarefa *"${task.data.id} - ${task.data.title}"* `);
                 return;
             }
-            session.send(`Anexos à tarefa "${task.data.id} - ${task.data.title}": \n\n\t` +
-                task.data.evidences.join(";\n\n\t") + ".");
+            const evidences = task.data.evidences.map((e) => {
+                return `* ${e};`;
+            }).join("\n\n");
+            session.send(`Anexos à tarefa *"${task.data.id} - ${task.data.title}":* \n\n` + evidences);
         });
     }
     getTaskDescriptions(session) {
@@ -160,11 +170,13 @@ class QueryTaskIntents extends intentBase_1.IntentBase {
                 return;
             }
             if (task.data.description.length === 0) {
-                session.endDialog(`Nenhuma descrição encontrada para a tarefa "${task.data.id} - ${task.data.title}"`);
+                session.endDialog(`Nenhuma descrição encontrada para a tarefa *"${task.data.id} - ${task.data.title}"* `);
                 return;
             }
-            session.send(`Descrições da tarefa "${task.data.id} - ${task.data.title}": \n\n\t` +
-                task.data.description.join(";\n\n\t") + ".");
+            const descriptions = task.data.description.map((d) => {
+                return `* ${d};`;
+            }).join("\n\n");
+            session.send(`Descrições da tarefa "${task.data.id} - ${task.data.title}": \n\n` + descriptions);
         });
     }
     getTaskActivities(session) {
@@ -175,13 +187,13 @@ class QueryTaskIntents extends intentBase_1.IntentBase {
                 return;
             }
             if (task.data.activities.length === 0) {
-                session.endDialog(`Nenhuma atividade encontrada na tarefa "${task.data.id} - ${task.data.title}"`);
+                session.endDialog(`Nenhuma atividade encontrada na tarefa *"${task.data.id} - ${task.data.title}"*`);
                 return;
             }
-            session.send(`Atividades da tarefa "${task.data.id} - ${task.data.title}": \n\n\t` +
-                task.data.
-                    activities.map((a) => `${a.id} - ${a.title} (${a.complexity} - ${a.userName})`)
-                    .join(";\n\n\t") + ".");
+            const activities = task.data.activities.map((a) => {
+                return `* ${a.id} - ${a.title} *(${a.complexity} - ${a.userName})*;`;
+            }).join("\n\n");
+            session.send(`Atividades da tarefa *"${task.data.id} - ${task.data.title}"*: \n\n` + activities);
         });
     }
 }

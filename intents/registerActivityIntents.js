@@ -26,7 +26,7 @@ class RegisterActivityIntents extends intentBase_1.IntentBase {
                     session.replaceDialog("/profile");
                     return;
                 }
-                const title = builder.EntityRecognizer.findEntity(args.entities, IE.Text);
+                const title = builder.EntityRecognizer.findAllEntities(args.entities, IE.Text);
                 const complexity = builder.EntityRecognizer.findEntity(args.entities, IE.Complexity);
                 const taskid = builder.EntityRecognizer.findEntity(args.entities, IE.EntityId);
                 const taskname = builder.EntityRecognizer.findEntity(args.entities, IE.Target);
@@ -39,7 +39,7 @@ class RegisterActivityIntents extends intentBase_1.IntentBase {
                     taskId: taskid && taskid.entity ?
                         parseInt(taskid.entity, 10) : undefined,
                     taskName: taskname ? taskname.entity : undefined,
-                    title: title ? title.entity.replace("\"", "") : undefined,
+                    title: title ? title.map((t) => { return t.entity.replace("\"", ""); }).join(" ") : undefined,
                 };
                 session.dialogData.activity = activity;
                 if (!activity.title || activity.title.length < 3) {
