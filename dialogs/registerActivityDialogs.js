@@ -180,14 +180,14 @@ class RegisterActivityDialogs {
             }),
         ]);
         bot.dialog("/confirmActivityCreation", [(session, args) => __awaiter(this, void 0, void 0, function* () {
-                if (args.activity) {
+                if (args && args.activity) {
                     session.dialogData.activity = args.activity;
                 }
                 const activity = session.dialogData.activity;
                 // tslint:disable-next-line:max-line-length
                 let msg = "Hum, deixe-me ver... Já tenho o que preciso para cadastrar sua atividade, apenas confirme os dados: \n\n";
                 let options = this.confirmationOptions;
-                if (args.errorOnSave) {
+                if (args && args.errorOnSave) {
                     msg = `Ocorreu o seguinte erro ao criar a atividade "${args.errorOnSave}" \n\n`;
                     options[0] = this.OptionTryAgain;
                 }
@@ -200,13 +200,7 @@ class RegisterActivityDialogs {
                     `Complexidades: ${activity.complexity}; \n\n` +
                     `Tarefa: ${activity.taskId} - ${activity.taskName}.`);
                 builder.Prompts.choice(session, "Escolha uma opção: ", options, { listStyle: builder.ListStyle.list });
-            }), (session, results) => {
-                if (results.response.entity === this.OptionOk
-                    || results.response.entity === this.OptionTryAgain) {
-                    session.dialogData.activity.changed = false;
-                    session.endDialogWithResult({ response: { activity: session.dialogData.activity } });
-                    return;
-                }
+            }), (session, results, next) => {
                 if (results.response.entity === this.OptionChangeTitle) {
                     session.dialogData.activity.changed = true;
                     session.dialogData.activity.title = undefined;
@@ -231,17 +225,25 @@ class RegisterActivityDialogs {
                     session.clearDialogStack();
                     return;
                 }
+                session.dialogData.activity.changed = false;
+                next();
             },
-            (session, results) => {
-                if (results.response.activity) {
+            (session, results) => __awaiter(this, void 0, void 0, function* () {
+                if (results.response && results.response.activity) {
                     session.dialogData.activity = results.response.activity;
                 }
                 if (session.dialogData.activity.changed) {
                     session.replaceDialog("/confirmActivityCreation", { activity: session.dialogData.activity });
                     return;
                 }
-                session.endDialogWithResult({ response: { activity: session.dialogData.activity } });
-            }]);
+                const activity = session.dialogData.activity;
+                const [err, result] = yield await_to_js_1.default(iteratorService_1.IteratorService.createActivity(session.userData.user, activity.taskId, activity.title, activity.complexity));
+                if (err || !result.success) {
+                    session.replaceDialog("/confirmActivityCreation", { activity: session.dialogData.activity, errorOnSave: (result || err).message });
+                    return;
+                }
+                session.endDialog("Atividade cadastrada com sucesso!");
+            })]);
     }
 }
 exports.RegisterActivityDialogs = RegisterActivityDialogs;

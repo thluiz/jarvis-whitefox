@@ -12,6 +12,20 @@ const IR = new IteratorBaseRepository();
 
 export class IteratorService implements IService {
 
+    public static async getUsersProjects(user: Domain.User): Promise<Result<Domain.Project[]>> {
+        return IR.executeSP("GetUsersProjects",
+            (rs) => { return Domain.Project.serializeAll(rs.results); },
+            SQLParameter.Int("userId", user.id),
+        );
+    }
+
+    public static async getProjectAreas(project: Domain.Project): Promise<Result<Domain.FeatureArea[]>> {
+        return IR.executeSP("GetProjectAreas",
+            (rs) => { return Domain.FeatureArea.serializeAll(rs.results); },
+            SQLParameter.Int("projectId", project.id),
+        );
+    }
+
     public static async getTaskComplexities(user: Domain.User, task: Domain.Task): Promise<Result<Domain.Task>> {
         const result = task;
 
@@ -97,8 +111,18 @@ export class IteratorService implements IService {
 
         const thirteen = /(13|treze)/;
 
+        const parsed = parseInt(complexity, 10);
+
+        if (!isNaN(parsed)) {
+            return parsed;
+        }
+
         if (half.test(complexity)) {
             return 0.5;
+        }
+
+        if (thirteen.test(complexity)) {
+            return 13;
         }
 
         if (one.test(complexity)) {
@@ -121,13 +145,7 @@ export class IteratorService implements IService {
             return 8;
         }
 
-        if (thirteen.test(complexity)) {
-            return 13;
-        }
-
-        const parsed = parseInt(complexity, 10);
-
-        return isNaN(parsed) ? 0 : parsed;
+        return 0;
     }
 
     public static async validateProjectForNewTask(user: Domain.User, projectId: number) {
@@ -167,6 +185,27 @@ export class IteratorService implements IService {
             SQLParameter.Decimal("complexity", complexity, 3, 1),
             SQLParameter.NVarChar("title", title, 100),
         );
+    }
+
+    public static async createTask(user: Domain.User, project: Domain.Project,
+                                   area: Domain.FeatureArea, title: string,
+                                   complexity: number, description: string): Promise<Result<Domain.Task>> {
+
+        let [err, taskResult] = await to(IR.executeSP("CreateItemBacklog",
+            (rs) => { return <Domain.Task> { id: rs.id}; },
+            SQLParameter.Int("userId", user.id),
+            SQLParameter.Int("projectId", project.id),
+            SQLParameter.Int("area", area ? area.id : 0),
+            SQLParameter.Decimal("complexity", complexity, 3, 1),
+            SQLParameter.NVarChar("title", title, 100),
+            SQLParameter.NVarCharMax("description", description),
+        ));
+
+        if (err) {
+            return Result.Fail<Domain.Task>(err.message);
+        }
+
+        return taskResult;
     }
 
     public static async updateIncidents(): Promise<Result<any>> {

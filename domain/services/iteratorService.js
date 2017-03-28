@@ -12,10 +12,21 @@ const await_to_js_1 = require("await-to-js");
 const http = require("http");
 const result_1 = require("../../domain/result");
 const entities_1 = require("../entities");
+const Domain = require("../entities");
 const iteratorBaseRepository_1 = require("../repositories/iteratorBaseRepository");
 const sqlParameter_1 = require("../sqlParameter");
 const IR = new iteratorBaseRepository_1.IteratorBaseRepository();
 class IteratorService {
+    static getUsersProjects(user) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return IR.executeSP("GetUsersProjects", (rs) => { return Domain.Project.serializeAll(rs.results); }, sqlParameter_1.SQLParameter.Int("userId", user.id));
+        });
+    }
+    static getProjectAreas(project) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return IR.executeSP("GetProjectAreas", (rs) => { return Domain.FeatureArea.serializeAll(rs.results); }, sqlParameter_1.SQLParameter.Int("projectId", project.id));
+        });
+    }
     static getTaskComplexities(user, task) {
         return __awaiter(this, void 0, void 0, function* () {
             const result = task;
@@ -69,8 +80,15 @@ class IteratorService {
         const five = /(5|cinco)/;
         const eight = /(8|oito)/;
         const thirteen = /(13|treze)/;
+        const parsed = parseInt(complexity, 10);
+        if (!isNaN(parsed)) {
+            return parsed;
+        }
         if (half.test(complexity)) {
             return 0.5;
+        }
+        if (thirteen.test(complexity)) {
+            return 13;
         }
         if (one.test(complexity)) {
             return 1;
@@ -87,11 +105,7 @@ class IteratorService {
         if (eight.test(complexity)) {
             return 8;
         }
-        if (thirteen.test(complexity)) {
-            return 13;
-        }
-        const parsed = parseInt(complexity, 10);
-        return isNaN(parsed) ? 0 : parsed;
+        return 0;
     }
     static validateProjectForNewTask(user, projectId) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -111,6 +125,15 @@ class IteratorService {
     static createActivity(user, taskId, title, complexity) {
         return __awaiter(this, void 0, void 0, function* () {
             return IR.executeSPNoResult("CreateTask", sqlParameter_1.SQLParameter.Int("userId", user.id), sqlParameter_1.SQLParameter.Int("itemBacklogId", taskId), sqlParameter_1.SQLParameter.Decimal("complexity", complexity, 3, 1), sqlParameter_1.SQLParameter.NVarChar("title", title, 100));
+        });
+    }
+    static createTask(user, project, area, title, complexity, description) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let [err, taskResult] = yield await_to_js_1.default(IR.executeSP("CreateItemBacklog", (rs) => { return { id: rs.id }; }, sqlParameter_1.SQLParameter.Int("userId", user.id), sqlParameter_1.SQLParameter.Int("projectId", project.id), sqlParameter_1.SQLParameter.Int("area", area ? area.id : 0), sqlParameter_1.SQLParameter.Decimal("complexity", complexity, 3, 1), sqlParameter_1.SQLParameter.NVarChar("title", title, 100), sqlParameter_1.SQLParameter.NVarCharMax("description", description)));
+            if (err) {
+                return result_1.Result.Fail(err.message);
+            }
+            return taskResult;
         });
     }
     static updateIncidents() {

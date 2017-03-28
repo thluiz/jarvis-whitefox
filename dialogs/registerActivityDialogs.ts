@@ -101,7 +101,7 @@ export class RegisterActivityDialogs implements IDialogBase {
             builder.Prompts.text(session, q + "\n\nVocê também pode informar 0 " +
                 "ou cancelar que encerramos esse cadastro agora");
         }, (session, results) => {
-            if (parseInt(results.response, 10) === 0 || (<string> results.response).toLowerCase() === "cancelar") {
+            if (parseInt(results.response, 10) === 0 || (<string>results.response).toLowerCase() === "cancelar") {
                 session.endConversation("Ok, depois continuamos então");
                 return;
             }
@@ -123,7 +123,7 @@ export class RegisterActivityDialogs implements IDialogBase {
                 session.dialogData.activity = args.activity;
             }
 
-            let activity = <Activity> session.dialogData.activity;
+            let activity = <Activity>session.dialogData.activity;
 
             if (activity.taskId && activity.taskId > 0) {
                 return;
@@ -136,7 +136,7 @@ export class RegisterActivityDialogs implements IDialogBase {
 
                 if (err || !searchResult.success) {
                     session.endConversation("Ocorreu o seguinte erro ao buscar a tarefa:" +
-                        `\n\n\t ${ (searchResult || err).message } ` +
+                        `\n\n\t ${(searchResult || err).message} ` +
                         "\n\n Por favor, tente novamente ou acione o suporte.");
                     return;
                 }
@@ -211,7 +211,7 @@ export class RegisterActivityDialogs implements IDialogBase {
             } else {
                 session.dialogData.activity.taskId = undefined;
                 session.send(`hum... essa tarefa está com o seguinte problema:` +
-                    `\n\n\t ${ (validationResult || err).message }`);
+                    `\n\n\t ${(validationResult || err).message}`);
 
                 session.replaceDialog("/getActivityTaskId",
                     { activity: session.dialogData.activity, retry: true });
@@ -220,16 +220,16 @@ export class RegisterActivityDialogs implements IDialogBase {
         ]);
 
         bot.dialog("/confirmActivityCreation", [async (session, args) => {
-            if (args.activity) {
+            if (args && args.activity) {
                 session.dialogData.activity = args.activity;
             }
 
-            const activity = <Activity> session.dialogData.activity;
+            const activity = <Activity>session.dialogData.activity;
             // tslint:disable-next-line:max-line-length
             let msg = "Hum, deixe-me ver... Já tenho o que preciso para cadastrar sua atividade, apenas confirme os dados: \n\n";
             let options = this.confirmationOptions;
 
-            if (args.errorOnSave) {
+            if (args && args.errorOnSave) {
                 msg = `Ocorreu o seguinte erro ao criar a atividade "${args.errorOnSave}" \n\n`;
                 options[0] = this.OptionTryAgain;
             }
@@ -248,14 +248,7 @@ export class RegisterActivityDialogs implements IDialogBase {
             builder.Prompts.choice(session, "Escolha uma opção: ", options,
                 { listStyle: builder.ListStyle.list });
 
-        }, (session, results) => {
-            if (results.response.entity === this.OptionOk
-                || results.response.entity === this.OptionTryAgain) {
-                session.dialogData.activity.changed = false;
-                session.endDialogWithResult({ response: { activity: session.dialogData.activity } });
-                return;
-            }
-
+        }, (session, results, next) => {
             if (results.response.entity === this.OptionChangeTitle) {
                 session.dialogData.activity.changed = true;
                 session.dialogData.activity.title = undefined;
@@ -286,9 +279,12 @@ export class RegisterActivityDialogs implements IDialogBase {
                 session.clearDialogStack();
                 return;
             }
+
+            session.dialogData.activity.changed = false;
+            next();
         },
-        (session, results: builder.IDialogResult<IActivityResponse>) => {
-            if (results.response.activity) {
+        async (session, results: builder.IDialogResult<IActivityResponse>) => {
+            if (results.response && results.response.activity) {
                 session.dialogData.activity = results.response.activity;
             }
 
@@ -297,7 +293,18 @@ export class RegisterActivityDialogs implements IDialogBase {
                 return;
             }
 
-            session.endDialogWithResult({ response: { activity: session.dialogData.activity } });
+            const activity = <Activity> session.dialogData.activity;
+
+            const [err, result] = await to(IteratorService.createActivity(
+                session.userData.user, activity.taskId, activity.title, activity.complexity));
+
+            if (err || !result.success) {
+                session.replaceDialog("/confirmActivityCreation",
+                    { activity: session.dialogData.activity, errorOnSave: (result || err).message });
+                return;
+            }
+
+            session.endDialog("Atividade cadastrada com sucesso!");
         }],
         );
     }

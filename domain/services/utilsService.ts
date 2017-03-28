@@ -222,6 +222,10 @@ export class UtilsService implements IService {
         return resp;
     }
 
+    public static capitalizeFirstLetter(str): string {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
     public static has_at_least_one(regexp: RegExp, entities: builder.IEntity[]): boolean {
         for (let e of entities) {
             if (regexp.test(e.entity)) {

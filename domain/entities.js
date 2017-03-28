@@ -10,4 +10,6 @@ var project_1 = require("./entities/project");
 exports.Project = project_1.Project;
 var loginRequest_1 = require("./entities/loginRequest");
 exports.LoginRequest = loginRequest_1.LoginRequest;
+var featureArea_1 = require("./entities/featureArea");
+exports.FeatureArea = featureArea_1.FeatureArea;
 //# sourceMappingURL=entities.js.map

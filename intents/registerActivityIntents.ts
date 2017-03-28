@@ -2,7 +2,7 @@ import to from "await-to-js";
 import * as builder from "botbuilder";
 import { IActivityResponse } from "../dialogs/registerActivityDialogs";
 import { Activity, Task } from "../domain/entities";
-import { IteratorService } from "../domain/services/service";
+import { IteratorService, UtilsService } from "../domain/services/service";
 import { IntentBase } from "./intentBase";
 import { IntentEntities } from "./intentEntities";
 
@@ -14,10 +14,10 @@ export class RegisterActivityIntents extends IntentBase {
         dialog.matches("register_activity", [
             (session, args, next) => {
                 if (!session.userData.user
-                || !session.userData.user.id
-                || session.userData.user.id <= 0) {
-                    session.send("Antes de lançar tarefas preciso ter certeza de quem é você no Iterator." +
-                                "Depois que você logar poderemos criar tarefas para você, ok?");
+                    || !session.userData.user.id
+                    || session.userData.user.id <= 0) {
+                    session.send("Antes de lançar atividades preciso ter certeza de quem é você no Iterator." +
+                        "Depois que você logar poderemos criar atividades para você, ok?");
                     session.replaceDialog("/profile");
                     return;
                 }
@@ -28,7 +28,7 @@ export class RegisterActivityIntents extends IntentBase {
                 const taskname = builder.EntityRecognizer.findEntity(args.entities, IE.Target);
                 const project = builder.EntityRecognizer.findEntity(args.entities, IE.Location);
 
-                let activity = <Activity> {
+                let activity = <Activity>{
                     complexity: complexity && complexity.entity ?
                         IteratorService.convertComplexity2Number(complexity.entity) : undefined,
                     id: 0,
@@ -36,7 +36,12 @@ export class RegisterActivityIntents extends IntentBase {
                     taskId: taskid && taskid.entity ?
                         parseInt(taskid.entity, 10) : undefined,
                     taskName: taskname ? taskname.entity : undefined,
-                    title: title ? title.map((t) => { return t.entity.replace("\"", ""); }).join(" ") : undefined,
+                    title: title ?
+                        UtilsService.capitalizeFirstLetter(
+                            title.map((t) => {
+                                return t.entity.replace("\"", "");
+                            }).join(" "))
+                        : undefined,
                 };
 
                 session.dialogData.activity = activity;
@@ -65,7 +70,7 @@ export class RegisterActivityIntents extends IntentBase {
                     session.dialogData.activity = results.response.activity;
                 }
 
-                let activity = <Activity> session.dialogData.activity;
+                let activity = <Activity>session.dialogData.activity;
 
                 if (!activity.taskId && activity.taskName && activity.taskName.length > 0) {
                     session.beginDialog("/searchTaskForActivity", { activity: session.dialogData.activity });
@@ -78,9 +83,9 @@ export class RegisterActivityIntents extends IntentBase {
                     session.dialogData.activity = results.response.activity;
                 }
 
-                let activity = <Activity> session.dialogData.activity;
+                let activity = <Activity>session.dialogData.activity;
 
-                session.beginDialog("/getActivityTaskId", { activity: session.dialogData.activity});
+                session.beginDialog("/getActivityTaskId", { activity: session.dialogData.activity });
             },
             (session, results: builder.IDialogResult<IActivityResponse>, next) => {
                 if (results.response && results.response.activity) {
@@ -88,23 +93,6 @@ export class RegisterActivityIntents extends IntentBase {
                 }
 
                 session.beginDialog("/confirmActivityCreation", { activity: session.dialogData.activity });
-            },
-            async (session, results: builder.IDialogResult<IActivityResponse>, next) => {
-                if (results.response && results.response.activity) {
-                    session.dialogData.activity = results.response.activity;
-                }
-                const activity = <Activity> session.dialogData.activity;
-
-                const [err, result] = await to(IteratorService.createActivity(
-                    session.userData.user, activity.taskId, activity.title, activity.complexity));
-
-                if (err || !result.success) {
-                    session.beginDialog("/confirmActivityCreation",
-                        { activity: session.dialogData.activity, errorOnSave: (result || err).message });
-                    return;
-                }
-
-                session.endDialog("Atividade cadastrada com sucesso!");
             },
         ]);
     }

@@ -31,6 +31,8 @@ export class QueryTaskIntents extends IntentBase {
                 }
 
                 const entityId = builder.EntityRecognizer.findEntity(args.entities, IE.EntityId);
+                session.dialogData.targets = builder.EntityRecognizer.findAllEntities(args.entities, IE.Target);
+                session.dialogData.commands = builder.EntityRecognizer.findAllEntities(args.entities, IE.Command);
 
                 if (entityId && entityId.entity && parseInt(entityId.entity, 10) > 0) {
                     const [errTask, task] = await to(TR.load(parseInt(entityId.entity, 10)));
@@ -57,9 +59,6 @@ export class QueryTaskIntents extends IntentBase {
                 session.dialogData.locations = UtilsService.setup_locations(locations);
                 session.dialogData.text = textEntities ? textEntities.map((t) => { return t.entity; }).join(" ") : " ";
 
-                session.dialogData.targets = builder.EntityRecognizer.findAllEntities(args.entities, IE.Target);
-                session.dialogData.commands = builder.EntityRecognizer.findAllEntities(args.entities, IE.Command);
-
                 if (!session.dialogData.text || session.dialogData.text.length <= 3) {
                     session.beginDialog("/getTaskTitle", { task: {} });
                     return;
@@ -68,7 +67,7 @@ export class QueryTaskIntents extends IntentBase {
                 next();
             },
             async (session, results, next) => {
-                if (session.dialogData.task && session.dialogData.task.Id > 0) {
+                if (session.dialogData.task && session.dialogData.task.id > 0) {
                     next();
                     return;
                 }
@@ -94,7 +93,7 @@ export class QueryTaskIntents extends IntentBase {
                 }
 
                 if (searchResult.data.length === 1 && searchResult.data[0].items.length === 1) {
-                    let t = <Task>{};
+                    let t = <Task> {};
                     t.id = searchResult.data[0].items[0].id;
                     t.title = searchResult.data[0].items[0].name;
 
@@ -131,22 +130,24 @@ export class QueryTaskIntents extends IntentBase {
                     session.dialogData.task = task;
                 }
 
-                let targets = <builder.IEntity[]>session.dialogData.targets;
+                let targets = <builder.IEntity[]> session.dialogData.targets;
 
                 session.sendTyping();
-                if (UtilsService.has_at_least_one(this.TargetsRegExp.description, targets)) {
-                    this.getTaskDescriptions(session);
-                    return;
-                }
+                if (targets && targets.length > 0) {
+                    if (UtilsService.has_at_least_one(this.TargetsRegExp.description, targets)) {
+                        this.getTaskDescriptions(session);
+                        return;
+                    }
 
-                if (UtilsService.has_at_least_one(this.TargetsRegExp.evidences, targets)) {
-                    this.getTaskEvidences(session);
-                    return;
-                }
+                    if (UtilsService.has_at_least_one(this.TargetsRegExp.evidences, targets)) {
+                        this.getTaskEvidences(session);
+                        return;
+                    }
 
-                if (UtilsService.has_at_least_one(this.TargetsRegExp.activities, targets)) {
-                    this.getTaskActivities(session);
-                    return;
+                    if (UtilsService.has_at_least_one(this.TargetsRegExp.activities, targets)) {
+                        this.getTaskActivities(session);
+                        return;
+                    }
                 }
 
                 this.getTaskComplexities(session);

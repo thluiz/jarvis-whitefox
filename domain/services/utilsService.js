@@ -186,6 +186,9 @@ class UtilsService {
         });
         return resp;
     }
+    static capitalizeFirstLetter(str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
     static has_at_least_one(regexp, entities) {
         for (let e of entities) {
             if (regexp.test(e.entity)) {

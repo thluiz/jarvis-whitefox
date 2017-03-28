@@ -38,6 +38,8 @@ class QueryTaskIntents extends intentBase_1.IntentBase {
                     return;
                 }
                 const entityId = builder.EntityRecognizer.findEntity(args.entities, IE.EntityId);
+                session.dialogData.targets = builder.EntityRecognizer.findAllEntities(args.entities, IE.Target);
+                session.dialogData.commands = builder.EntityRecognizer.findAllEntities(args.entities, IE.Command);
                 if (entityId && entityId.entity && parseInt(entityId.entity, 10) > 0) {
                     const [errTask, task] = yield await_to_js_1.default(TR.load(parseInt(entityId.entity, 10)));
                     if (errTask || !task.success) {
@@ -57,8 +59,6 @@ class QueryTaskIntents extends intentBase_1.IntentBase {
                 session.dialogData.billingcenters = service_1.UtilsService.setup_billing_centers(bt, poliedro);
                 session.dialogData.locations = service_1.UtilsService.setup_locations(locations);
                 session.dialogData.text = textEntities ? textEntities.map((t) => { return t.entity; }).join(" ") : " ";
-                session.dialogData.targets = builder.EntityRecognizer.findAllEntities(args.entities, IE.Target);
-                session.dialogData.commands = builder.EntityRecognizer.findAllEntities(args.entities, IE.Command);
                 if (!session.dialogData.text || session.dialogData.text.length <= 3) {
                     session.beginDialog("/getTaskTitle", { task: {} });
                     return;
@@ -66,7 +66,7 @@ class QueryTaskIntents extends intentBase_1.IntentBase {
                 next();
             }),
             (session, results, next) => __awaiter(this, void 0, void 0, function* () {
-                if (session.dialogData.task && session.dialogData.task.Id > 0) {
+                if (session.dialogData.task && session.dialogData.task.id > 0) {
                     next();
                     return;
                 }
@@ -117,17 +117,19 @@ class QueryTaskIntents extends intentBase_1.IntentBase {
                 }
                 let targets = session.dialogData.targets;
                 session.sendTyping();
-                if (service_1.UtilsService.has_at_least_one(this.TargetsRegExp.description, targets)) {
-                    this.getTaskDescriptions(session);
-                    return;
-                }
-                if (service_1.UtilsService.has_at_least_one(this.TargetsRegExp.evidences, targets)) {
-                    this.getTaskEvidences(session);
-                    return;
-                }
-                if (service_1.UtilsService.has_at_least_one(this.TargetsRegExp.activities, targets)) {
-                    this.getTaskActivities(session);
-                    return;
+                if (targets && targets.length > 0) {
+                    if (service_1.UtilsService.has_at_least_one(this.TargetsRegExp.description, targets)) {
+                        this.getTaskDescriptions(session);
+                        return;
+                    }
+                    if (service_1.UtilsService.has_at_least_one(this.TargetsRegExp.evidences, targets)) {
+                        this.getTaskEvidences(session);
+                        return;
+                    }
+                    if (service_1.UtilsService.has_at_least_one(this.TargetsRegExp.activities, targets)) {
+                        this.getTaskActivities(session);
+                        return;
+                    }
                 }
                 this.getTaskComplexities(session);
             }),
