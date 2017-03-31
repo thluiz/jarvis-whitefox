@@ -18,18 +18,25 @@ const IS = new iteratorService_1.IteratorService();
 const TR = new itemBacklogRepository_1.ItembacklogRepository();
 class RegisterActivityDialogs {
     constructor() {
-        this.OptionOk = "Pode confirmar!";
+        this.OptionOk = "Sim! Pode confirmar!";
         this.OptionTryAgain = "Tentar novamente... agora vai!";
+        this.OptionChangeData = "Não, preciso alterar antes de salvar";
+        this.OptionCancel = "Não. cancelar esse lançamento.";
         this.OptionChangeTitle = "Alterar o título";
         this.OptionChangeComplexity = "Alterar a complexidade";
         this.OptionChangeTask = "Alterar a tarefa";
-        this.OptionCancel = "Deixa para lá, não quero mais lançar essa atividade.";
+        this.OptionCancelChange = "Não quero mais alterar a tarefa";
         this.OptionSearchOtherTask = "Procurar outra tarefa";
         this.confirmationOptions = [
             this.OptionOk,
+            this.OptionChangeData,
+            this.OptionCancel,
+        ];
+        this.changeOptions = [
             this.OptionChangeTitle,
             this.OptionChangeComplexity,
             this.OptionChangeTask,
+            this.OptionCancelChange,
             this.OptionCancel,
         ];
     }
@@ -191,33 +198,21 @@ class RegisterActivityDialogs {
                     msg = `Ocorreu o seguinte erro ao criar a atividade "${args.errorOnSave}" \n\n`;
                     options[0] = this.OptionTryAgain;
                 }
-                const [err, resultTask] = yield await_to_js_1.default(TR.load(activity.taskId));
-                if (resultTask.success) {
-                    activity.taskName = resultTask.data.title;
+                if (!activity.taskName || activity.taskName.length <= 0) {
+                    const [err, resultTask] = yield await_to_js_1.default(TR.load(activity.taskId));
+                    if (resultTask.success) {
+                        activity.taskName = resultTask.data.title;
+                    }
                 }
                 session.send(msg +
-                    `Título: ${activity.title}; \n\n` +
-                    `Complexidades: ${activity.complexity}; \n\n` +
-                    `Tarefa: ${activity.taskId} - ${activity.taskName}.`);
-                builder.Prompts.choice(session, "Escolha uma opção: ", options, { listStyle: builder.ListStyle.list });
-            }), (session, results, next) => {
-                if (results.response.entity === this.OptionChangeTitle) {
-                    session.dialogData.activity.changed = true;
-                    session.dialogData.activity.title = undefined;
-                    session.beginDialog("/getActivityTitle", { activity: session.dialogData.activity, retry: false });
-                    return;
-                }
-                if (results.response.entity === this.OptionChangeComplexity) {
-                    session.dialogData.activity.changed = true;
-                    session.dialogData.activity.complexity = undefined;
-                    session.beginDialog("/getActivityComplexity", { activity: session.dialogData.activity, retry: false });
-                    return;
-                }
-                if (results.response.entity === this.OptionChangeTask) {
-                    session.dialogData.activity.changed = true;
-                    session.dialogData.activity.taskId = undefined;
-                    session.dialogData.activity.taskName = undefined;
-                    session.beginDialog("/getTaskNameForSearchTask", { activity: session.dialogData.activity, retry: false });
+                    `**Título:** ${activity.title}; \n\n` +
+                    `**Complexidades:** ${activity.complexity}; \n\n` +
+                    `**Tarefa:** ${activity.taskId} - ${activity.taskName}.`);
+                builder.Prompts.choice(session, "Posso prosseguir então?", options, { listStyle: builder.ListStyle.button });
+            }),
+            (session, results, next) => {
+                if (results.response.entity === this.OptionChangeData) {
+                    session.replaceDialog("/changeActivityBeforeCreate", { activity: session.dialogData.activity, retry: false });
                     return;
                 }
                 if (results.response.entity === this.OptionCancel) {
@@ -244,6 +239,54 @@ class RegisterActivityDialogs {
                     return;
                 }
                 session.endDialog("Atividade cadastrada com sucesso!");
+            })
+        ]);
+        bot.dialog("/changeActivityBeforeCreate", [(session, args) => __awaiter(this, void 0, void 0, function* () {
+                if (args && args.activity) {
+                    session.dialogData.activity = args.activity;
+                }
+                builder.Prompts.choice(session, "O que deseja alterar?", this.changeOptions, { listStyle: builder.ListStyle.button });
+            }), (session, results, next) => {
+                if (results.response.entity === this.OptionChangeTitle) {
+                    session.dialogData.activity.changed = true;
+                    session.dialogData.activity.title = undefined;
+                    session.beginDialog("/getActivityTitle", { activity: session.dialogData.activity, retry: false });
+                    return;
+                }
+                if (results.response.entity === this.OptionChangeComplexity) {
+                    session.dialogData.activity.changed = true;
+                    session.dialogData.activity.complexity = undefined;
+                    session.beginDialog("/getActivityComplexity", { activity: session.dialogData.activity, retry: false });
+                    return;
+                }
+                if (results.response.entity === this.OptionChangeTask) {
+                    session.dialogData.activity.changed = true;
+                    session.dialogData.activity.taskId = undefined;
+                    session.dialogData.activity.taskName = undefined;
+                    session.beginDialog("/getTaskNameForSearchTask", { activity: session.dialogData.activity, retry: false });
+                    return;
+                }
+                if (results.response.entity === this.OptionCancelChange) {
+                    session.replaceDialog("/confirmActivityCreation", { activity: session.dialogData.activity });
+                    return;
+                }
+                if (results.response.entity === this.OptionCancel) {
+                    session.send("Ok! depois tentamos novamente...");
+                    session.clearDialogStack();
+                    return;
+                }
+                session.dialogData.activity.changed = false;
+                next();
+            },
+            (session, results, next) => __awaiter(this, void 0, void 0, function* () {
+                if (results.response && results.response.activity) {
+                    session.dialogData.activity = results.response.activity;
+                }
+                if (session.dialogData.activity.changed) {
+                    session.replaceDialog("/confirmActivityCreation", { activity: session.dialogData.activity });
+                    return;
+                }
+                next();
             })]);
     }
 }

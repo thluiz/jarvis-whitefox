@@ -19,19 +19,27 @@ export interface IActivityResponse {
 }
 
 export class RegisterActivityDialogs implements IDialogBase {
-    private OptionOk = "Pode confirmar!";
+    private OptionOk = "Sim! Pode confirmar!";
     private OptionTryAgain = "Tentar novamente... agora vai!";
+    private OptionChangeData = "Não, preciso alterar antes de salvar";
+    private OptionCancel = "Não. cancelar esse lançamento.";
     private OptionChangeTitle = "Alterar o título";
     private OptionChangeComplexity = "Alterar a complexidade";
     private OptionChangeTask = "Alterar a tarefa";
-    private OptionCancel = "Deixa para lá, não quero mais lançar essa atividade.";
+    private OptionCancelChange = "Não quero mais alterar a tarefa";
     private OptionSearchOtherTask = "Procurar outra tarefa";
 
     private confirmationOptions = [
         this.OptionOk,
+        this.OptionChangeData,
+        this.OptionCancel,
+    ];
+
+    private changeOptions = [
         this.OptionChangeTitle,
         this.OptionChangeComplexity,
         this.OptionChangeTask,
+        this.OptionCancelChange,
         this.OptionCancel,
     ];
 
@@ -234,19 +242,72 @@ export class RegisterActivityDialogs implements IDialogBase {
                 options[0] = this.OptionTryAgain;
             }
 
-            const [err, resultTask] = await to(TR.load(activity.taskId));
+            if (!activity.taskName || activity.taskName.length <= 0) {
+                const [err, resultTask] = await to(TR.load(activity.taskId));
 
-            if (resultTask.success) {
-                activity.taskName = resultTask.data.title;
+                if (resultTask.success) {
+                    activity.taskName = resultTask.data.title;
+                }
             }
 
             session.send(msg +
-                `Título: ${activity.title}; \n\n` +
-                `Complexidades: ${activity.complexity}; \n\n` +
-                `Tarefa: ${activity.taskId} - ${activity.taskName}.`);
+                `**Título:** ${activity.title}; \n\n` +
+                `**Complexidades:** ${activity.complexity}; \n\n` +
+                `**Tarefa:** ${activity.taskId} - ${activity.taskName}.`);
 
-            builder.Prompts.choice(session, "Escolha uma opção: ", options,
-                { listStyle: builder.ListStyle.list });
+            builder.Prompts.choice(session, "Posso prosseguir então?", options,
+                { listStyle: builder.ListStyle.button });
+
+        },
+        (session, results, next) => {
+            if (results.response.entity === this.OptionChangeData) {
+                session.replaceDialog("/changeActivityBeforeCreate",
+                    { activity: session.dialogData.activity, retry: false });
+                return;
+            }
+
+            if (results.response.entity === this.OptionCancel) {
+                session.send("Ok! depois tentamos novamente...");
+                session.clearDialogStack();
+                return;
+            }
+
+            session.dialogData.activity.changed = false;
+            next();
+        },
+        async (session, results: builder.IDialogResult<IActivityResponse>) => {
+            if (results.response && results.response.activity) {
+                session.dialogData.activity = results.response.activity;
+            }
+
+            if (session.dialogData.activity.changed) {
+                session.replaceDialog("/confirmActivityCreation", { activity: session.dialogData.activity });
+                return;
+            }
+
+            const activity = <Activity>session.dialogData.activity;
+
+            session.sendTyping();
+            const [err, result] = await to(IteratorService.createActivity(
+                session.userData.user, activity.taskId, activity.title, activity.complexity));
+
+            if (err || !result.success) {
+                session.replaceDialog("/confirmActivityCreation",
+                    { activity: session.dialogData.activity, errorOnSave: (result || err).message });
+                return;
+            }
+
+            session.endDialog("Atividade cadastrada com sucesso!");
+        }
+        ]);
+
+        bot.dialog("/changeActivityBeforeCreate", [async (session, args) => {
+            if (args && args.activity) {
+                session.dialogData.activity = args.activity;
+            }
+
+            builder.Prompts.choice(session, "O que deseja alterar?", this.changeOptions,
+                { listStyle: builder.ListStyle.button });
 
         }, (session, results, next) => {
             if (results.response.entity === this.OptionChangeTitle) {
@@ -274,6 +335,11 @@ export class RegisterActivityDialogs implements IDialogBase {
                 return;
             }
 
+            if (results.response.entity === this.OptionCancelChange) {
+                session.replaceDialog("/confirmActivityCreation", { activity: session.dialogData.activity });
+                return;
+            }
+
             if (results.response.entity === this.OptionCancel) {
                 session.send("Ok! depois tentamos novamente...");
                 session.clearDialogStack();
@@ -283,7 +349,7 @@ export class RegisterActivityDialogs implements IDialogBase {
             session.dialogData.activity.changed = false;
             next();
         },
-        async (session, results: builder.IDialogResult<IActivityResponse>) => {
+        async (session, results: builder.IDialogResult<IActivityResponse>, next) => {
             if (results.response && results.response.activity) {
                 session.dialogData.activity = results.response.activity;
             }
@@ -293,19 +359,7 @@ export class RegisterActivityDialogs implements IDialogBase {
                 return;
             }
 
-            const activity = <Activity> session.dialogData.activity;
-
-            session.sendTyping();
-            const [err, result] = await to(IteratorService.createActivity(
-                session.userData.user, activity.taskId, activity.title, activity.complexity));
-
-            if (err || !result.success) {
-                session.replaceDialog("/confirmActivityCreation",
-                    { activity: session.dialogData.activity, errorOnSave: (result || err).message });
-                return;
-            }
-
-            session.endDialog("Atividade cadastrada com sucesso!");
+            next();
         }],
         );
     }
