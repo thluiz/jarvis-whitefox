@@ -1,0 +1,1 @@
+{"version":3,"file":"startDemonstrationIntents.js","sourceRoot":"","sources":["startDemonstrationIntents.ts"],"names":[],"mappings":";;AACA,6CAA0C;AAE1C,+BAAuC,SAAQ,uBAAU;IAC9C,KAAK,CAAC,MAA4B;QACrC,MAAM,CAAC,OAAO,CAAC,qBAAqB,EAAE;YAClC,CAAC,OAAO,EAAE,IAAI,EAAE,IAAI;gBAChB,OAAO,CAAC,SAAS,CAAC,mFAAmF,CAAC,CAAC;YAC3G,CAAC;SACJ,CAAC,CAAC;IACP,CAAC;CACJ;AARD,8DAQC"}

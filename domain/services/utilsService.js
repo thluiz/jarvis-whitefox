@@ -12,7 +12,8 @@ const LocationsRegExps = {
     openIncident: /^((chamado(s)?(\ aberto)?)|incidente)/,
     openTasks: /^(tarefa(s)?(\ aberta)?)/,
 };
-const ProjectsRegExp = /^(procam|classon|edros|portal|p\+|p\ \+)/;
+const ProjectsRegExp = /^(procam|classon|edros|portal|p\+|p\ \+|pmais)/;
+const PmaisRegexp = /^p\ \+|p\+|pmais/i;
 const BillingCentersRegExps = {
     bt: /^(bt|b\&t|b\ \&\ t|bet)/,
     poliedro: /^(poliedro)/,
@@ -22,7 +23,7 @@ class UtilsService {
         let r = restrictions.filter((e) => {
             return ProjectsRegExp.test(e.entity);
         }).map((e) => {
-            if (/^p\ \+|p\+/.test(e.entity)) {
+            if (PmaisRegexp.test(e.entity)) {
                 return "p+ (sites e apis)";
             }
             else {

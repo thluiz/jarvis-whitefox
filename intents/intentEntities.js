@@ -11,6 +11,7 @@ class IntentEntities {
         this.Location = "location";
         this.Text = "text";
         this.ProjectBillingCenter = "project_billingcenter";
+        this.FeatureArea = "feature_area";
     }
 }
 exports.IntentEntities = IntentEntities;

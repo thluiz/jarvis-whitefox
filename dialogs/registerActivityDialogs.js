@@ -237,6 +237,7 @@ class RegisterActivityDialogs {
                     return;
                 }
                 const activity = session.dialogData.activity;
+                session.sendTyping();
                 const [err, result] = yield await_to_js_1.default(iteratorService_1.IteratorService.createActivity(session.userData.user, activity.taskId, activity.title, activity.complexity));
                 if (err || !result.success) {
                     session.replaceDialog("/confirmActivityCreation", { activity: session.dialogData.activity, errorOnSave: (result || err).message });

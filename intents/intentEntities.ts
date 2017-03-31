@@ -8,4 +8,5 @@ export class IntentEntities {
     public readonly Location = "location";
     public readonly Text = "text";
     public readonly ProjectBillingCenter = "project_billingcenter";
+    public readonly FeatureArea = "feature_area";
 }
