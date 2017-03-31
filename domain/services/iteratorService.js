@@ -81,11 +81,11 @@ class IteratorService {
         const eight = /(8|oito)/;
         const thirteen = /(13|treze)/;
         const parsed = parseInt(complexity, 10);
-        if (!isNaN(parsed)) {
-            return parsed;
-        }
         if (half.test(complexity)) {
             return 0.5;
+        }
+        if (!isNaN(parsed)) {
+            return parsed;
         }
         if (thirteen.test(complexity)) {
             return 13;

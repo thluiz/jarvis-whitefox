@@ -20,8 +20,8 @@ class RegisterActivityDialogs {
     constructor() {
         this.OptionOk = "Sim! Pode confirmar!";
         this.OptionTryAgain = "Tentar novamente... agora vai!";
-        this.OptionChangeData = "Não, preciso alterar antes de salvar";
-        this.OptionCancel = "Não. cancelar esse lançamento.";
+        this.OptionChangeData = "Não. Preciso alterá-la antes de confirmar";
+        this.OptionCancel = "Não. Cancelar esse lançamento.";
         this.OptionChangeTitle = "Alterar o título";
         this.OptionChangeComplexity = "Alterar a complexidade";
         this.OptionChangeTask = "Alterar a tarefa";
