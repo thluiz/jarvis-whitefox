@@ -17,9 +17,9 @@ const service_1 = require("../domain/services/service");
 const IE = new intentEntities_1.IntentEntities();
 const UR = new userRepository_1.UserRepository();
 const ownSpeed = /^(meu|minha)/;
-const greensmiles = ["XD", "(heartyeyes)", "(cool)", ":o", "(rock)"];
+const greensmiles = ["(hearteyes)", "(cool)", ":o", "(rock)", "(like)", "(joy)"];
 const yellowsmiles = [":)", ";)", ":|", ":P", ":^)", "|(", "(mm)", "(whew)", "(smirk)"];
-const redsmiles = ["(shock)", "(cold)", ":(", ":@", ":S", "(waiting)",
+const redsmiles = ["(shock)", "(cold)", ":(", ":@", ":S", "(waiting), (sadness)",
     "(wtf)", "(slap)", "(computerrage)", "(gottarun)"];
 const fullgoal = ["(penguin)", "(party)", "(celebrate)", "(victory)"];
 class UserSpeedIntents extends intentBase_1.IntentBase {
@@ -49,6 +49,7 @@ class UserSpeedIntents extends intentBase_1.IntentBase {
                 if (results && results.response) {
                     session.dialogData.user = results.response.user;
                 }
+                session.sendTyping();
                 const [err, speed] = yield await_to_js_1.default(UR.getUserSpeed(session.dialogData.user));
                 if (err || !speed.success) {
                     session.endConversation(`Ocorreu o seguinte erro ao obter a velocidade: ${(err || speed).message}`);
