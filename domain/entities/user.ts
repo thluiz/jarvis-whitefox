@@ -10,6 +10,10 @@ export class User {
         return User.create(recordset.id, recordset.name);
     }
 
+    public static serializeAll(recordSet: any): User[] {
+        return recordSet.results.map(User.serialize);
+    }
+
     public id: number;
     public name: string;
     public projects?: Project[];

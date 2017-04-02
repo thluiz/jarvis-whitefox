@@ -17,7 +17,7 @@ const thanksIntents_1 = require("./thanksIntents");
 const updateFollowUpIntents_1 = require("./updateFollowUpIntents");
 const updateIncidentIntents_1 = require("./updateIncidentIntents");
 const updateTaskIntents_1 = require("./updateTaskIntents");
-const userPaceIntents_1 = require("./userPaceIntents");
+const userSpeedIntents_1 = require("./userSpeedIntents");
 // tslint:disable:max-classes-per-file
 class FlipCoin extends flipCoinIntents_1.FlipCoinIntents {
 }
@@ -70,7 +70,7 @@ exports.UpdateIncidents = UpdateIncidents;
 class UpdateTask extends updateTaskIntents_1.UpdateTaskIntents {
 }
 exports.UpdateTask = UpdateTask;
-class UserPace extends userPaceIntents_1.UserPaceIntents {
+class UserSpeed extends userSpeedIntents_1.UserSpeedIntents {
 }
-exports.UserPace = UserPace;
+exports.UserSpeed = UserSpeed;
 //# sourceMappingURL=intents.js.map

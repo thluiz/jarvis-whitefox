@@ -5,6 +5,25 @@ import { IteratorBaseRepository } from "./iteratorBaseRepository";
 
 export class UserRepository extends IteratorBaseRepository {
 
+    public async getUserSpeed(user: User): Promise<Result<any>> {
+        return this.executeSP("GetUserSpeed",
+            (r) => r,
+            SQLParameter.Int("userId", user.id),
+        );
+    }
+
+    public async getUserByName(name: string): Promise<Result<User[]>> {
+        const result = await this.executeSP("getUserByName",
+            User.serializeAll,
+            SQLParameter.NVarChar("name", name, 50));
+
+        if (!result.success) {
+            return result;
+        }
+
+        return Result.Ok(result.data);
+    }
+
     public async load(securityId: number): Promise<Result<User>> {
         const result: Result<User> = await this.executeSP("GetUserData",
             User.serialize,

@@ -25,6 +25,7 @@ bot.endConversationAction("reset", "forcing dialog resetting..", { matches: /^en
 /*** DIALOGS ***/
 [new Dialogs.Commands(),
 new Dialogs.CommonTaskActions(),
+new Dialogs.UserSpeed(),
 new Dialogs.RegisterActivity(),
 new Dialogs.RegisterTask()].forEach((d) => d.setup(bot));
 
@@ -47,7 +48,7 @@ new Intents.Thanks(),
 new Intents.UpdateFollowup(),
 new Intents.UpdateIncidents(),
 new Intents.UpdateTask(),
-new Intents.UserPace()].forEach((intent) => intent.setup(dialog));
+new Intents.UserSpeed()].forEach((intent) => intent.setup(dialog));
 
 /*** API ***/
 WebAPI.setup(server, connector, bot);

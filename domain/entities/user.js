@@ -7,6 +7,9 @@ class User {
     static serialize(recordset) {
         return User.create(recordset.id, recordset.name);
     }
+    static serializeAll(recordSet) {
+        return recordSet.results.map(User.serialize);
+    }
     constructor(id, name, projects) {
         this.id = id;
         this.name = name;

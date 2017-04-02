@@ -15,7 +15,7 @@ import { ThanksIntents } from "./thanksIntents";
 import { UpdateFollowupIntents } from "./updateFollowUpIntents";
 import { UpdateIncidentsIntents } from "./updateIncidentIntents";
 import { UpdateTaskIntents } from "./updateTaskIntents";
-import { UserPaceIntents } from "./userPaceIntents";
+import { UserSpeedIntents } from "./userSpeedIntents";
 
 // tslint:disable:max-classes-per-file
 export class FlipCoin extends FlipCoinIntents { }
@@ -35,4 +35,4 @@ export class Thanks extends ThanksIntents { }
 export class UpdateFollowup extends UpdateFollowupIntents { }
 export class UpdateIncidents extends UpdateIncidentsIntents { }
 export class UpdateTask extends UpdateTaskIntents { }
-export class UserPace extends UserPaceIntents { }
+export class UserSpeed extends UserSpeedIntents { }

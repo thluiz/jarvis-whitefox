@@ -6,7 +6,7 @@ export class UserPaceIntents extends IntentBase {
         dialog.matches("user_pace", [
             (session, args, next) => {
                 session.endDialog("eu deveria mostrar o andamento de algum usuário" +
-                                    ", mas ainda não me programaram... sorry :( !");
+                                    ", mas ainda não me programaram... sorry!");
             },
         ]);
     }

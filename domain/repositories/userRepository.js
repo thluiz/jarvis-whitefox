@@ -13,6 +13,20 @@ const entities_1 = require("../entities");
 const sqlParameter_1 = require("../sqlParameter");
 const iteratorBaseRepository_1 = require("./iteratorBaseRepository");
 class UserRepository extends iteratorBaseRepository_1.IteratorBaseRepository {
+    getUserSpeed(user) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.executeSP("GetUserSpeed", (r) => r, sqlParameter_1.SQLParameter.Int("userId", user.id));
+        });
+    }
+    getUserByName(name) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const result = yield this.executeSP("getUserByName", entities_1.User.serializeAll, sqlParameter_1.SQLParameter.NVarChar("name", name, 50));
+            if (!result.success) {
+                return result;
+            }
+            return result_1.Result.Ok(result.data);
+        });
+    }
     load(securityId) {
         return __awaiter(this, void 0, void 0, function* () {
             const result = yield this.executeSP("GetUserData", entities_1.User.serialize, sqlParameter_1.SQLParameter.Int("securityId", securityId));
