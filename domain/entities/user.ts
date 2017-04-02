@@ -11,6 +11,9 @@ export class User {
     }
 
     public static serializeAll(recordSet: any): User[] {
+        if (!recordSet.results || recordSet.results.length === 0) {
+            return [];
+        }
         return recordSet.results.map(User.serialize);
     }
 

@@ -8,6 +8,9 @@ class User {
         return User.create(recordset.id, recordset.name);
     }
     static serializeAll(recordSet) {
+        if (!recordSet.results || recordSet.results.length === 0) {
+            return [];
+        }
         return recordSet.results.map(User.serialize);
     }
     constructor(id, name, projects) {

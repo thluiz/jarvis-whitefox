@@ -42,7 +42,7 @@ class UserSpeedDialogs {
                 }
                 const [err, userData] = yield await_to_js_1.default(UR.getUserByName(session.dialogData.user.name));
                 if (err || !userData.success) {
-                    session.endDialog(`Ocorreu o seguinte erro ao procurar o usuário ${(err || userData).message}`);
+                    session.endConversation(`Ocorreu o seguinte erro ao procurar o usuário ${(err || userData).message}`);
                     return;
                 }
                 if (userData.data.length === 0) {
