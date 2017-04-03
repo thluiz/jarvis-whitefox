@@ -83,12 +83,16 @@ export class UserSpeedIntents extends IntentBase {
 
                     msg += ` **${goal.Entity}** :\n\n`;
 
-                    msg += `* Média Esperada: ${goal.MediaDiasFaltantes}; \n`;
+                    if (goal.MediaDiasFaltantes > goal.MediaDias) {
+                        msg += `* Média: **${goal.MediaDiasFaltantes};** (${goal.MediaDias.toFixed(2)})\n`;
+                    } else {
+                        msg += `* Média: ${goal.MediaDiasFaltantes}; (${goal.MediaDias.toFixed(2)}) \n`;
+                    }
 
                     if (goal.Estimated < 0) {
-                        msg += `* Estimativa: **${-goal.Estimated}**; \n`;
+                        msg += `* Devendo: **${-goal.Estimated}**; \n`;
                     } else {
-                        msg += `* Estimativa: ${goal.Estimated}; \n`;
+                        msg += `* Adiantado: ${goal.Estimated}; \n`;
                     }
 
                     msg += `* Realizada: ${goal.ClosedComplexity}; \n` +

@@ -22,11 +22,18 @@ export class ProfileIntents extends IntentBase {
                         return;
                     }
 
+                    if (this.CommandList.login.test(receivedCommand.entity)) {
+                        session.userData = {};
+                        session.beginDialog("/profile");
+                        return;
+                    }
+
                     session.endDialog(`Desculpe, ainda não posso executar o comando ${receivedCommand.entity}`);
                     return;
                 }
 
-                session.beginDialog("/profile");
+                session.endDialog("Desculpe, não entendi :( . Em breve você poderá usar o [help]," +
+                    " mas por enquanto fala com o pessoal da WhiteFox, ok?");
             },
         ]);
     }
