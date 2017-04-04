@@ -18,14 +18,14 @@ const IS = new iteratorService_1.IteratorService();
 const TR = new itemBacklogRepository_1.ItembacklogRepository();
 class RegisterActivityDialogs {
     constructor() {
-        this.OptionOk = "Sim! Pode confirmar!";
-        this.OptionTryAgain = "Tentar novamente... agora vai!";
-        this.OptionChangeData = "Não. Preciso alterá-la antes de confirmar";
-        this.OptionCancel = "Não. Cancelar esse lançamento.";
-        this.OptionChangeTitle = "Alterar o título";
-        this.OptionChangeComplexity = "Alterar a complexidade";
-        this.OptionChangeTask = "Alterar a tarefa";
-        this.OptionCancelChange = "Não quero mais alterar a tarefa";
+        this.OptionOk = "Sim";
+        this.OptionTryAgain = "Tentar novamente";
+        this.OptionChangeData = "Alterar";
+        this.OptionCancel = "Cancelar";
+        this.OptionChangeTitle = "Título";
+        this.OptionChangeComplexity = "Complexidade";
+        this.OptionChangeTask = "Tarefa";
+        this.OptionCancelChange = "Não alterar";
         this.OptionSearchOtherTask = "Procurar outra tarefa";
         this.confirmationOptions = [
             this.OptionOk,

@@ -19,14 +19,14 @@ export interface IActivityResponse {
 }
 
 export class RegisterActivityDialogs implements IDialogBase {
-    private OptionOk = "Sim! Pode confirmar!";
-    private OptionTryAgain = "Tentar novamente... agora vai!";
-    private OptionChangeData = "Não. Preciso alterá-la antes de confirmar";
-    private OptionCancel = "Não. Cancelar esse lançamento.";
-    private OptionChangeTitle = "Alterar o título";
-    private OptionChangeComplexity = "Alterar a complexidade";
-    private OptionChangeTask = "Alterar a tarefa";
-    private OptionCancelChange = "Não quero mais alterar a tarefa";
+    private OptionOk = "Sim";
+    private OptionTryAgain = "Tentar novamente";
+    private OptionChangeData = "Alterar";
+    private OptionCancel = "Cancelar";
+    private OptionChangeTitle = "Título";
+    private OptionChangeComplexity = "Complexidade";
+    private OptionChangeTask = "Tarefa";
+    private OptionCancelChange = "Não alterar";
     private OptionSearchOtherTask = "Procurar outra tarefa";
 
     private confirmationOptions = [

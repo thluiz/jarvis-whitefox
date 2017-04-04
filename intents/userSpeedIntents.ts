@@ -84,9 +84,9 @@ export class UserSpeedIntents extends IntentBase {
                     msg += ` **${goal.Entity}** :\n\n`;
 
                     if (goal.MediaDiasFaltantes > goal.MediaDias) {
-                        msg += `* Média: **${goal.MediaDiasFaltantes};** (${goal.MediaDias.toFixed(2)})\n`;
+                        msg += `* Média: **${goal.MediaDiasFaltantes}** (${goal.MediaDias.toFixed(2)});\n`;
                     } else {
-                        msg += `* Média: ${goal.MediaDiasFaltantes}; (${goal.MediaDias.toFixed(2)}) \n`;
+                        msg += `* Média: ${goal.MediaDiasFaltantes} (${goal.MediaDias.toFixed(2)}); \n`;
                     }
 
                     if (goal.Estimated < 0) {

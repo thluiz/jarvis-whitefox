@@ -5,7 +5,7 @@ import * as Intents from "./intents/intents";
 import { WebAPI } from "./webAPI";
 
 /*** RESTIFY ***/
-const server: restify.Server = restify.createServer();
+const server = restify.createServer();
 server.listen(process.env.port || process.env.PORT || 3978);
 
 /*** CHAT BOT ***/
@@ -14,9 +14,9 @@ const connector = new builder.ChatConnector({
     appPassword: process.env.MICROSOFT_APP_PASSWORD,
 });
 
-const bot: builder.UniversalBot = new builder.UniversalBot(connector);
-const recognizer: builder.LuisRecognizer = new builder.LuisRecognizer(process.env.LUIS_ENDPOINT);
-const dialog: builder.IntentDialog = new builder.IntentDialog({ recognizers: [recognizer] });
+const bot = new builder.UniversalBot(connector);
+const recognizer = new builder.LuisRecognizer(process.env.LUIS_ENDPOINT);
+const dialog = new builder.IntentDialog({ recognizers: [recognizer] });
 bot.dialog("/", dialog);
 
 // in case of infinite loops...
