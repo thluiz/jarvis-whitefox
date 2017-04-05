@@ -1,12 +1,10 @@
 import { CommandDialogs } from "./commandDialogs";
-import { CommonTaskActionsDialogs } from "./commonTaskDialogs";
 import { RegisterActivityDialogs } from "./registerActivityDialogs";
-import { RegisterTaskDialogs } from "./registerTaskDialogs";
-import { UserSpeedDialogs } from "./userSpeedDialogs";
+import { TaskDialogs } from "./taskDialogs";
+import { UserDialogs } from "./userDialogs";
 
 // tslint:disable:max-classes-per-file
 export class Commands extends CommandDialogs { }
 export class RegisterActivity extends RegisterActivityDialogs { }
-export class CommonTaskActions extends CommonTaskActionsDialogs { }
-export class RegisterTask extends RegisterTaskDialogs { }
-export class UserSpeed extends UserSpeedDialogs { }
+export class Task extends TaskDialogs { }
+export class UserSpeed extends UserDialogs { }

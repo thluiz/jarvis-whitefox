@@ -14,18 +14,23 @@ const iteratorBaseRepository_1 = require("../domain/repositories/iteratorBaseRep
 const iteratorService_1 = require("../domain/services/iteratorService");
 const IR = new iteratorBaseRepository_1.IteratorBaseRepository();
 const IS = new iteratorService_1.IteratorService();
-class CommonTaskActionsDialogs {
+class TaskDialogs {
     constructor() {
-        this.OptionOk = "Manda Brasa!";
-        this.OptionTryAgain = "Tentar novamente... agora vai!";
-        this.OptionChangeTitle = "Alterar o título";
-        this.OptionChangeComplexity = "Alterar a complexidade";
-        this.OptionChangeProject = "Alterar o projeto";
-        this.OptionChangeArea = "Alterar a área";
-        this.OptionChangeDescription = "Alterar a descrição";
-        this.OptionCancel = "Pensando melhor, mais tarde cadastro essa tarefa...";
+        this.OptionOk = "Sim";
+        this.OptionTryAgain = "Tentar novamente";
+        this.OptionChange = "Alterar";
+        this.OptionChangeTitle = "Título";
+        this.OptionChangeComplexity = "Complexidade";
+        this.OptionChangeProject = "Projeto";
+        this.OptionChangeArea = "Área";
+        this.OptionChangeDescription = "Descrição";
+        this.OptionCancel = "Cancelar";
         this.confirmationOptions = [
             this.OptionOk,
+            this.OptionChange,
+            this.OptionCancel,
+        ];
+        this.changeOptions = [
             this.OptionChangeTitle,
             this.OptionChangeComplexity,
             this.OptionChangeProject,
@@ -191,34 +196,11 @@ class CommonTaskActionsDialogs {
                 session.dialogData.task = task;
                 session.endDialogWithResult({ response: { task: session.dialogData.task } });
             }]);
-        bot.dialog("/confirmTaskCreation", [(session, args) => __awaiter(this, void 0, void 0, function* () {
+        bot.dialog("/changeTaskBeforeCreate", [(session, args) => __awaiter(this, void 0, void 0, function* () {
                 if (args && args.task) {
                     session.dialogData.task = args.task;
                 }
-                if (args && args.projects) {
-                    session.dialogData.projects = args.projects;
-                }
-                const task = session.dialogData.task;
-                // tslint:disable-next-line:max-line-length
-                let msg = "Hum, deixe-me ver... Já tenho o que preciso para cadastrar essa tarefa," +
-                    "apenas confirme os dados: \n\n";
-                let options = this.confirmationOptions;
-                if (args && args.errorOnSave) {
-                    msg = `Ocorreu o seguinte erro ao criar a tarefa "${args.errorOnSave}" \n\n`;
-                    options[0] = this.OptionTryAgain;
-                }
-                msg += `**Projeto:** ${task.projectName} \n\n`;
-                if (task.areaName && task.areaName.length > 0) {
-                    msg += `**Área:** ${task.areaName}; \n\n`;
-                }
-                msg += `**Título:** ${task.title}; \n\n` +
-                    `**Complexidades:** ${task.complexity}; \n\n`;
-                if (task.description && task.description.length > 0
-                    && task.description[0] && task.description[0].length > 0) {
-                    msg += `**Descrição:** ${task.description[0]}; \n\n`;
-                }
-                session.send(msg);
-                builder.Prompts.choice(session, "Escolha uma opção: ", options, { listStyle: builder.ListStyle.list });
+                builder.Prompts.choice(session, "O que deseja alterar?", this.changeOptions, { listStyle: builder.ListStyle.button });
             }), (session, results, next) => {
                 if (results.response.entity === this.OptionChangeTitle) {
                     session.dialogData.task.changed = true;
@@ -259,7 +241,58 @@ class CommonTaskActionsDialogs {
                     return;
                 }
                 if (results.response.entity === this.OptionCancel) {
-                    session.send("Ok!");
+                    session.send("Ok! Depois tentamos novamente");
+                    session.clearDialogStack();
+                    return;
+                }
+                session.dialogData.task.changed = false;
+                next();
+            },
+            (session, results, next) => __awaiter(this, void 0, void 0, function* () {
+                if (results.response && results.response.task) {
+                    session.dialogData.task = results.response.task;
+                }
+                if (session.dialogData.task.changed) {
+                    session.replaceDialog("/confirmTaskCreation", { task: session.dialogData.task });
+                    return;
+                }
+                next();
+            })]);
+        bot.dialog("/confirmTaskCreation", [(session, args) => __awaiter(this, void 0, void 0, function* () {
+                if (args && args.task) {
+                    session.dialogData.task = args.task;
+                }
+                if (args && args.projects) {
+                    session.dialogData.projects = args.projects;
+                }
+                const task = session.dialogData.task;
+                // tslint:disable-next-line:max-line-length
+                let msg = "Hum, deixe-me ver... Já tenho o que preciso para cadastrar essa tarefa," +
+                    "apenas confirme os dados: \n\n";
+                let options = this.confirmationOptions;
+                if (args && args.errorOnSave) {
+                    msg = `Ocorreu o seguinte erro ao criar a tarefa "${args.errorOnSave}" \n\n`;
+                    options[0] = this.OptionTryAgain;
+                }
+                msg += `**Projeto:** ${task.projectName} \n\n`;
+                if (task.areaName && task.areaName.length > 0) {
+                    msg += `**Área:** ${task.areaName}; \n\n`;
+                }
+                msg += `**Título:** ${task.title}; \n\n` +
+                    `**Complexidades:** ${task.complexity}; \n\n`;
+                if (task.description && task.description.length > 0
+                    && task.description[0] && task.description[0].length > 0) {
+                    msg += `**Descrição:** ${task.description[0]}; \n\n`;
+                }
+                session.send(msg);
+                builder.Prompts.choice(session, "Posso prosseguir?", options, { listStyle: builder.ListStyle.button });
+            }), (session, results, next) => {
+                if (results.response.entity === this.OptionChange) {
+                    session.replaceDialog("/changeTaskBeforeCreate", { task: session.dialogData.task, retry: false });
+                    return;
+                }
+                if (results.response.entity === this.OptionCancel) {
+                    session.send("Ok! depois tentamos novamente...");
                     session.clearDialogStack();
                     return;
                 }
@@ -287,5 +320,5 @@ class CommonTaskActionsDialogs {
             })]);
     }
 }
-exports.CommonTaskActionsDialogs = CommonTaskActionsDialogs;
-//# sourceMappingURL=commonTaskDialogs.js.map
+exports.TaskDialogs = TaskDialogs;
+//# sourceMappingURL=taskDialogs.js.map

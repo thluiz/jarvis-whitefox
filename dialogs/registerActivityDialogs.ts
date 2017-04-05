@@ -285,7 +285,7 @@ export class RegisterActivityDialogs implements IDialogBase {
                 return;
             }
 
-            const activity = <Activity>session.dialogData.activity;
+            const activity = <Activity> session.dialogData.activity;
 
             session.sendTyping();
             const [err, result] = await to(IteratorService.createActivity(

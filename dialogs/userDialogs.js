@@ -16,7 +16,7 @@ const iteratorService_1 = require("../domain/services/iteratorService");
 const IR = new iteratorBaseRepository_1.IteratorBaseRepository();
 const UR = new userRepository_1.UserRepository();
 const IS = new iteratorService_1.IteratorService();
-class UserSpeedDialogs {
+class UserDialogs {
     setup(bot) {
         bot.dialog("/getUserByName", [(session, args, next) => {
                 session.dialogData.user = {};
@@ -70,5 +70,5 @@ class UserSpeedDialogs {
             })]);
     }
 }
-exports.UserSpeedDialogs = UserSpeedDialogs;
-//# sourceMappingURL=userSpeedDialogs.js.map
+exports.UserDialogs = UserDialogs;
+//# sourceMappingURL=userDialogs.js.map

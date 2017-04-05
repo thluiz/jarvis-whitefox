@@ -12,7 +12,7 @@ const IR = new IteratorBaseRepository();
 const UR = new UserRepository();
 const IS = new IteratorService();
 
-export class UserSpeedDialogs implements IDialogBase {
+export class UserDialogs implements IDialogBase {
     public setup(bot: builder.UniversalBot): void {
         bot.dialog("/getUserByName", [(session, args, next) => {
             session.dialogData.user = {};

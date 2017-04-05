@@ -15,18 +15,24 @@ export interface ITaskResponse {
     retry: boolean;
 }
 
-export class CommonTaskActionsDialogs implements IDialogBase {
-    private OptionOk = "Manda Brasa!";
-    private OptionTryAgain = "Tentar novamente... agora vai!";
-    private OptionChangeTitle = "Alterar o título";
-    private OptionChangeComplexity = "Alterar a complexidade";
-    private OptionChangeProject = "Alterar o projeto";
-    private OptionChangeArea = "Alterar a área";
-    private OptionChangeDescription = "Alterar a descrição";
-    private OptionCancel = "Pensando melhor, mais tarde cadastro essa tarefa...";
+export class TaskDialogs implements IDialogBase {
+    private OptionOk = "Sim";
+    private OptionTryAgain = "Tentar novamente";
+    private OptionChange = "Alterar";
+    private OptionChangeTitle = "Título";
+    private OptionChangeComplexity = "Complexidade";
+    private OptionChangeProject = "Projeto";
+    private OptionChangeArea = "Área";
+    private OptionChangeDescription = "Descrição";
+    private OptionCancel = "Cancelar";
 
     private confirmationOptions = [
         this.OptionOk,
+        this.OptionChange,
+        this.OptionCancel,
+    ];
+
+    private changeOptions = [
         this.OptionChangeTitle,
         this.OptionChangeComplexity,
         this.OptionChangeProject,
@@ -194,7 +200,7 @@ export class CommonTaskActionsDialogs implements IDialogBase {
                 session.dialogData.projects = projects.data;
             }
 
-            let task = <Task> session.dialogData.task;
+            let task = <Task>session.dialogData.task;
 
             const options = session.dialogData.projects.map((p) => { return p.name; });
             options[options.length] = this.OptionCancel;
@@ -230,44 +236,13 @@ export class CommonTaskActionsDialogs implements IDialogBase {
             session.endDialogWithResult({ response: { task: session.dialogData.task } });
         }]);
 
-        bot.dialog("/confirmTaskCreation", [async (session, args) => {
+        bot.dialog("/changeTaskBeforeCreate", [async (session, args) => {
             if (args && args.task) {
                 session.dialogData.task = args.task;
             }
 
-            if (args && args.projects) {
-                session.dialogData.projects = args.projects;
-            }
-
-            const task = <Task> session.dialogData.task;
-            // tslint:disable-next-line:max-line-length
-            let msg = "Hum, deixe-me ver... Já tenho o que preciso para cadastrar essa tarefa," +
-                "apenas confirme os dados: \n\n";
-            let options = this.confirmationOptions;
-
-            if (args && args.errorOnSave) {
-                msg = `Ocorreu o seguinte erro ao criar a tarefa "${args.errorOnSave}" \n\n`;
-                options[0] = this.OptionTryAgain;
-            }
-
-            msg += `**Projeto:** ${task.projectName} \n\n`;
-
-            if (task.areaName && task.areaName.length > 0) {
-                msg += `**Área:** ${task.areaName}; \n\n`;
-            }
-
-            msg += `**Título:** ${task.title}; \n\n` +
-                `**Complexidades:** ${task.complexity}; \n\n`;
-
-            if (task.description && task.description.length > 0
-                && task.description[0] && task.description[0].length > 0) {
-                msg += `**Descrição:** ${task.description[0]}; \n\n`;
-            }
-
-            session.send(msg);
-
-            builder.Prompts.choice(session, "Escolha uma opção: ", options,
-                { listStyle: builder.ListStyle.list });
+            builder.Prompts.choice(session, "O que deseja alterar?", this.changeOptions,
+                { listStyle: builder.ListStyle.button });
 
         }, (session, results, next) => {
             if (results.response.entity === this.OptionChangeTitle) {
@@ -320,7 +295,76 @@ export class CommonTaskActionsDialogs implements IDialogBase {
             }
 
             if (results.response.entity === this.OptionCancel) {
-                session.send("Ok!");
+                session.send("Ok! Depois tentamos novamente");
+                session.clearDialogStack();
+                return;
+            }
+
+            session.dialogData.task.changed = false;
+            next();
+        },
+        async (session, results: builder.IDialogResult<ITaskResponse>, next) => {
+            if (results.response && results.response.task) {
+                session.dialogData.task = results.response.task;
+            }
+
+            if (session.dialogData.task.changed) {
+                session.replaceDialog("/confirmTaskCreation", { task: session.dialogData.task });
+                return;
+            }
+
+            next();
+        }]);
+
+
+        bot.dialog("/confirmTaskCreation", [async (session, args) => {
+            if (args && args.task) {
+                session.dialogData.task = args.task;
+            }
+
+            if (args && args.projects) {
+                session.dialogData.projects = args.projects;
+            }
+
+            const task = <Task>session.dialogData.task;
+            // tslint:disable-next-line:max-line-length
+            let msg = "Hum, deixe-me ver... Já tenho o que preciso para cadastrar essa tarefa," +
+                "apenas confirme os dados: \n\n";
+            let options = this.confirmationOptions;
+
+            if (args && args.errorOnSave) {
+                msg = `Ocorreu o seguinte erro ao criar a tarefa "${args.errorOnSave}" \n\n`;
+                options[0] = this.OptionTryAgain;
+            }
+
+            msg += `**Projeto:** ${task.projectName} \n\n`;
+
+            if (task.areaName && task.areaName.length > 0) {
+                msg += `**Área:** ${task.areaName}; \n\n`;
+            }
+
+            msg += `**Título:** ${task.title}; \n\n` +
+                `**Complexidades:** ${task.complexity}; \n\n`;
+
+            if (task.description && task.description.length > 0
+                && task.description[0] && task.description[0].length > 0) {
+                msg += `**Descrição:** ${task.description[0]}; \n\n`;
+            }
+
+            session.send(msg);
+
+            builder.Prompts.choice(session, "Posso prosseguir?", options,
+                { listStyle: builder.ListStyle.button });
+
+        }, (session, results, next) => {
+            if (results.response.entity === this.OptionChange) {
+                session.replaceDialog("/changeTaskBeforeCreate",
+                    { task: session.dialogData.task, retry: false });
+                return;
+            }
+
+            if (results.response.entity === this.OptionCancel) {
+                session.send("Ok! depois tentamos novamente...");
                 session.clearDialogStack();
                 return;
             }
@@ -342,7 +386,7 @@ export class CommonTaskActionsDialogs implements IDialogBase {
                 session.dialogData.task = results.response.task;
             }
 
-            const task = <Task> session.dialogData.task;
+            const task = <Task>session.dialogData.task;
 
             const [err, result] = await to(IteratorService.createTask(
                 session.userData.user,
@@ -358,7 +402,6 @@ export class CommonTaskActionsDialogs implements IDialogBase {
             }
 
             session.endDialog(`Tarefa ${result.data.id} cadastrada com sucesso!`);
-        }],
-        );
+        }]);
     }
 }

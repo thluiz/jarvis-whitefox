@@ -53,7 +53,7 @@ class RegisterTaskIntents extends intentBase_1.IntentBase {
             (session, results, next) => {
                 if (results && results.response) {
                     let task = results.response.task;
-                    session.dialogData.text = results.response.task.title;
+                    session.dialogData.task = results.response.task;
                 }
                 let task = session.dialogData.task;
                 if (!task.complexity || task.complexity <= 0) {

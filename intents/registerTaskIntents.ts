@@ -1,6 +1,6 @@
 import to from "await-to-js";
 import * as builder from "botbuilder";
-import { ITaskResponse } from "../dialogs/commonTaskDialogs";
+import { ITaskResponse } from "../dialogs/taskDialogs";
 import { Task } from "../domain/entities";
 import { IteratorService, UtilsService } from "../domain/services/service";
 import { IntentBase } from "./intentBase";
@@ -27,7 +27,7 @@ export class RegisterTaskIntents extends IntentBase {
                 const complexity = builder.EntityRecognizer.findEntity(args.entities, IE.Complexity);
                 const project = builder.EntityRecognizer.findEntity(args.entities, IE.ProjectBillingCenter);
 
-                const task = <Task>{
+                const task = <Task> {
                     complexity: complexity && complexity.entity ?
                         IteratorService.convertComplexity2Number(complexity.entity) : undefined,
                     projectName: project ? project.entity : undefined,
@@ -50,7 +50,7 @@ export class RegisterTaskIntents extends IntentBase {
             (session, results, next) => {
                 if (results && results.response) {
                     let task = results.response.task;
-                    session.dialogData.text = results.response.task.title;
+                    session.dialogData.task = results.response.task;
                 }
 
                 let task = session.dialogData.task;

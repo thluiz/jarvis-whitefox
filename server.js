@@ -21,10 +21,9 @@ bot.dialog("/", dialog);
 bot.endConversationAction("reset", "forcing dialog resetting..", { matches: /^endDialog/i });
 /*** DIALOGS ***/
 [new Dialogs.Commands(),
-    new Dialogs.CommonTaskActions(),
+    new Dialogs.Task(),
     new Dialogs.UserSpeed(),
-    new Dialogs.RegisterActivity(),
-    new Dialogs.RegisterTask()].forEach((d) => d.setup(bot));
+    new Dialogs.RegisterActivity()].forEach((d) => d.setup(bot));
 /*** INTENTS ***/
 [
     new Intents.FlipCoin(),
