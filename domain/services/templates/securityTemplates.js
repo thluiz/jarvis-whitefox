@@ -1,5 +1,5 @@
-// tslint:disable:max-line-length
 "use strict";
+// tslint:disable:max-line-length
 Object.defineProperty(exports, "__esModule", { value: true });
 class SecurityTemplates {
     static WelcomeMessage(name, commands) {

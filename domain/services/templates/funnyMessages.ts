@@ -5,26 +5,20 @@ export class FunnyMessages {
     }
 
     public static greetingsResponse(): string {
-        const messages = [
-            "bom dia!",
-            "bom tarde!",
-            "boa noite!",
+        const messages = [            
             "saudações!",
-            "Oooiii!",
-            "Pra você também...",
+            "Oooiii!",            
+            "\o/",
+            "(like)"            
         ];
 
         return this.getRandomString(messages);
     }
 
     public static helloResponse(): string {
-        const messages = [
-            "Olá!",
-            "e aí!",
-            "whatzzzzup!",
-            "saudações!",
-            "to aqui!",
-            "opa!",
+        const messages = [                        
+            "whatzzzzup!",            
+            "to aqui!",            
             "trabalhando numa parada aqui, mas pode falar...",
             "supletivo, supletivo, supletivo... Fazendo umas contas aqui, mas pode ir falando...",
             "que q ce manda...",
@@ -35,9 +29,7 @@ export class FunnyMessages {
 
     public static howAreYouResponse(): string {
         const messages = [
-            "tudo sempre bem! Na matrix, ninguém tem problemas...",
-            "blz!",
-            "tudo tranquilo!",
+            "tudo sempre bem! Na matrix, ninguém tem problemas...",            
             "tudo ótimo!",
             "Você será  AS-SI-MI-LA-DO! ops! ato falho...mas tá tudo bem, esquece isso...",
         ];

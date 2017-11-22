@@ -185,7 +185,7 @@ export class UtilsService implements IService {
         if (d2 >= 10) { d2 = 0; }
         const dots = formatting.withDots ? "." : "";
         const dashs = formatting.withDashs ? "-" : "";
-        const fluffy = formatting.withFluffy ? " (L)(F):)(F)(L) " : "";
+        const fluffy = formatting.withFluffy ? " (flower) (hearteyes) (flower) " : "";
 
         return "" + fluffy + n1 + n2 + n3 + dots + n4 + n5 + n6 + dots + n7 + n8 + n9 + dashs + d1 + d2;
     }
