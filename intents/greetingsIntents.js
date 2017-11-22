@@ -18,17 +18,17 @@ class GreetingsIntents extends intentBase_1.IntentBase {
         dialog.matches("greetings", [
             (session, args, next) => {
                 const text = builder.EntityRecognizer.findEntity(args.entities, IE.Text);
-                if (text && text.length > 0) {
-                    text = text.entity;
-                    if (this.SmallTalk.greetings.test(text)) {
+                if (text && text.entity && text.entity.length > 0) {
+                    const greet = text.entity;
+                    if (this.SmallTalk.greetings.test(greet)) {
                         session.endDialog(funnyMessages_1.FunnyMessages.greetingsResponse());
                         return;
                     }
-                    if (this.SmallTalk.hello.test(text)) {
+                    if (this.SmallTalk.hello.test(greet)) {
                         session.endDialog(funnyMessages_1.FunnyMessages.helloResponse());
                         return;
                     }
-                    if (this.SmallTalk.howAreYou.test(text)) {
+                    if (this.SmallTalk.howAreYou.test(greet)) {
                         session.endDialog(funnyMessages_1.FunnyMessages.howAreYouResponse());
                         return;
                     }
