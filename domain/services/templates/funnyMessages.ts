@@ -38,12 +38,11 @@ export class FunnyMessages {
     }
 
     public static thankYouResponse(): string {
-        const messages = [
-            "você é bem vindo",
-            "você é sempre bem vindo!",
+        const messages = [                        
             "Depois te mando a conta",
-            "Me paga um almoço e está tudo certo!",
-            "não tem porque",
+            "Depois te mando a conta",
+            "Depois te mando a conta",
+            "Me paga um almoço e está tudo certo!",            
             "de nada!",
             "tranquilo!",
         ];
