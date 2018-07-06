@@ -47,7 +47,7 @@ class BaseRepository {
                 if (recordsets.length > 0) {
                     const principal = recordsets[0];
                     if (principal[0]
-                        && principal[0][0]) {
+                        && principal[0][0]) { // WTF!
                         if (principal[0][0].success !== undefined
                             && !principal[0][0].success) {
                             return result_1.Result.Fail(principal[0][0].message || "Ocorreu um erro não definido");

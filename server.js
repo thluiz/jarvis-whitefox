@@ -13,10 +13,12 @@ const connector = new builder.ChatConnector({
     appId: process.env.MICROSOFT_APP_ID,
     appPassword: process.env.MICROSOFT_APP_PASSWORD,
 });
+const inMemoryStorage = new builder.MemoryBotStorage();
 const bot = new builder.UniversalBot(connector);
 const recognizer = new builder.LuisRecognizer(process.env.LUIS_ENDPOINT);
 const dialog = new builder.IntentDialog({ recognizers: [recognizer] });
 bot.dialog("/", dialog);
+bot.set('storage', inMemoryStorage);
 // in case of infinite loops...
 bot.endConversationAction("reset", "forcing dialog resetting..", { matches: /^endDialog/i });
 /*** DIALOGS ***/
