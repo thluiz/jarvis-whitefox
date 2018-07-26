@@ -15,6 +15,7 @@
     "await-to-js": "^1.0.1",
     "azure-arm-resource": "^1.6.1-preview",
     "botbuilder": "^3.7.0",
+    "botbuilder-azure": "^3.1.0",
     "ms-rest": "^1.15.7",
     "ms-rest-azure": "^1.15.7",
     "mssql": "^3.3.0",
