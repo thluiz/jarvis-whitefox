@@ -5,6 +5,7 @@ const restify = require("restify");
 const Dialogs = require("./dialogs/dialogs");
 const Intents = require("./intents/intents");
 const webAPI_1 = require("./webAPI");
+var azure = require('botbuilder-azure');
 /*** RESTIFY ***/
 const server = restify.createServer();
 server.listen(process.env.port || process.env.PORT || 3978);
@@ -13,12 +14,16 @@ const connector = new builder.ChatConnector({
     appId: process.env.MICROSOFT_APP_ID,
     appPassword: process.env.MICROSOFT_APP_PASSWORD,
 });
-const inMemoryStorage = new builder.MemoryBotStorage();
 const bot = new builder.UniversalBot(connector);
 const recognizer = new builder.LuisRecognizer(process.env.LUIS_ENDPOINT);
 const dialog = new builder.IntentDialog({ recognizers: [recognizer] });
 bot.dialog("/", dialog);
-bot.set('storage', inMemoryStorage);
+var tableName = "Jarvis"; // You define
+var storageName = process.env.AZURE_TABLE_NAME;
+var storageKey = process.env.AZURE_TABLE_KEY;
+var azureTableClient = new azure.AzureTableClient(tableName, storageName, storageKey);
+var tableStorage = new azure.AzureBotStorage({ gzipData: false }, azureTableClient);
+bot.set('storage', tableStorage);
 // in case of infinite loops...
 bot.endConversationAction("reset", "forcing dialog resetting..", { matches: /^endDialog/i });
 /*** DIALOGS ***/
