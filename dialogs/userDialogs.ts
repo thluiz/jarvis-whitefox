@@ -56,8 +56,8 @@ export class UserDialogs implements IDialogBase {
                 return;
             }
 
-            session.dialogData.users = <User[]> userData.data;
-            let options = [];
+            session.dialogData.users = userData.data as User[];
+            const options = [];
 
             session.dialogData.users.forEach((u: User) => {
                 options[options.length] = u.name;

@@ -54,7 +54,7 @@ class UserDialogs {
                     return;
                 }
                 session.dialogData.users = userData.data;
-                let options = [];
+                const options = [];
                 session.dialogData.users.forEach((u) => {
                     options[options.length] = u.name;
                 });

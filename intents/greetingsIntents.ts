@@ -1,6 +1,7 @@
 import * as builder from "botbuilder";
 import { IntentBase } from "./intentBase";
 import { IntentEntities } from "./intentEntities";
+
 import { FunnyMessages } from "../domain/services/templates/funnyMessages";
 
 const IE = new IntentEntities();
@@ -16,21 +17,21 @@ export class GreetingsIntents extends IntentBase {
         dialog.matches("greetings", [
             (session, args, next) => {
                 const text = builder.EntityRecognizer.findEntity(args.entities, IE.Text);
-                
-                if(text && text.entity && text.entity.length > 0) {
+
+                if (text && text.entity && text.entity.length > 0) {
                     const greet = text.entity;
 
-                    if(this.SmallTalk.greetings.test(greet)) {
+                    if (this.SmallTalk.greetings.test(greet)) {
                         session.endDialog(FunnyMessages.greetingsResponse());
                         return;
-                    } 
-                    
+                    }
+
                     if (this.SmallTalk.hello.test(greet)) {
                         session.endDialog(FunnyMessages.helloResponse());
                         return;
                     }
-                    
-                    if (this.SmallTalk.howAreYou.test(greet)) {                
+
+                    if (this.SmallTalk.howAreYou.test(greet)) {
                         session.endDialog(FunnyMessages.howAreYouResponse());
                         return;
                     }

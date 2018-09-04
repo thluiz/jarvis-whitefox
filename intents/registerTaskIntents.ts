@@ -27,7 +27,7 @@ export class RegisterTaskIntents extends IntentBase {
                 const complexity = builder.EntityRecognizer.findEntity(args.entities, IE.Complexity);
                 const project = builder.EntityRecognizer.findEntity(args.entities, IE.ProjectBillingCenter);
 
-                const task = <Task> {
+                const task = {
                     complexity: complexity && complexity.entity ?
                         IteratorService.convertComplexity2Number(complexity.entity) : undefined,
                     projectName: project ? project.entity : undefined,
@@ -37,7 +37,7 @@ export class RegisterTaskIntents extends IntentBase {
                                 return t.entity.replace("\"", "");
                             }).join(" "))
                         : undefined,
-                };
+                } as Task;
 
                 session.dialogData.task = task;
 
@@ -49,11 +49,10 @@ export class RegisterTaskIntents extends IntentBase {
             },
             (session, results, next) => {
                 if (results && results.response) {
-                    let task = results.response.task;
                     session.dialogData.task = results.response.task;
                 }
 
-                let task = session.dialogData.task;
+                const task = session.dialogData.task;
 
                 if (!task.complexity || task.complexity <= 0) {
                     session.beginDialog("/getTaskComplexity", { task });

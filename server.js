@@ -1,14 +1,20 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+// tslint:disable-next-line:no-var-requires
+require("dotenv").load();
 const builder = require("botbuilder");
 const restify = require("restify");
 const Dialogs = require("./dialogs/dialogs");
 const Intents = require("./intents/intents");
 const webAPI_1 = require("./webAPI");
-var azure = require('botbuilder-azure');
+// tslint:disable-next-line:no-var-requires
+const azure = require('botbuilder-azure');
 /*** RESTIFY ***/
 const server = restify.createServer();
-server.listen(process.env.port || process.env.PORT || 3978);
+server.listen(process.env.port || process.env.PORT || 3978, () => {
+    // tslint:disable-next-line:no-console
+    console.log(`Server listening - port: ${process.env.port || process.env.PORT || 3978}!`);
+});
 /*** CHAT BOT ***/
 const connector = new builder.ChatConnector({
     appId: process.env.MICROSOFT_APP_ID,
@@ -18,12 +24,14 @@ const bot = new builder.UniversalBot(connector);
 const recognizer = new builder.LuisRecognizer(process.env.LUIS_ENDPOINT);
 const dialog = new builder.IntentDialog({ recognizers: [recognizer] });
 bot.dialog("/", dialog);
-var tableName = "Jarvis"; // You define
-var storageName = process.env.AZURE_TABLE_NAME;
-var storageKey = process.env.AZURE_TABLE_KEY;
-var azureTableClient = new azure.AzureTableClient(tableName, storageName, storageKey);
-var tableStorage = new azure.AzureBotStorage({ gzipData: false }, azureTableClient);
-bot.set('storage', tableStorage);
+const tableName = "Jarvis"; // You define
+const storageName = process.env.AZURE_TABLE_NAME;
+const storageKey = process.env.AZURE_TABLE_KEY;
+const azureTableClient = new azure.AzureTableClient(tableName, storageName, storageKey);
+const tableStorage = new azure.AzureBotStorage({ gzipData: false }, azureTableClient);
+if (process.env.USE_TABLE_STORAGE === "true") {
+    bot.set("storage", tableStorage);
+}
 // in case of infinite loops...
 bot.endConversationAction("reset", "forcing dialog resetting..", { matches: /^endDialog/i });
 /*** DIALOGS ***/
