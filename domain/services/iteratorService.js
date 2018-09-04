@@ -152,7 +152,7 @@ class IteratorService {
                     }
                 }).on("error", (error) => {
                     if (error) {
-                        resolve(result_1.Result.Fail(err.message));
+                        resolve(result_1.Result.Fail(error.message));
                     }
                 });
             }));

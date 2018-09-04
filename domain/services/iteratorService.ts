@@ -220,7 +220,7 @@ export class IteratorService implements IService {
                 }
             }).on("error", (error) => {
                 if (error) {
-                    resolve(Result.Fail(err.message));
+                    resolve(Result.Fail(error.message));
                 }
             });
         }));
